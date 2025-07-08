@@ -1,1 +1,1 @@
-"# be17-2nd-Picketnologia-Picket" 
+# be17-2nd-Picketnologia-Picket
