@@ -6,8 +6,9 @@
 <h3 align="center">1팀 - Picketnologia</h3>
 
 <br /><br />
-  
-## 👨‍💻 팀원 구성
+
+# 👨‍💻 팀원 구성
+
 <table align="center">
   <tr>
   
@@ -34,5 +35,6 @@
 </table>
 <br /><br />
 
----
+# 프로젝트 주소
 
+[www.picket.o-r.kr](https://www.picket.o-r.kr)
