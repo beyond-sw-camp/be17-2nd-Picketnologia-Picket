@@ -34,6 +34,7 @@ const fetchData = reactive({
 
 const products = ref([
     {
+        id: 1,
         name: '지킬 앤 하이드',
         local: '충무아트센터',
         discount: '70%',
@@ -41,6 +42,7 @@ const products = ref([
         date: '2025.6.15 ~ 7.30'
     },
     {
+        id: 1,
         name: '지킬 앤 하이드',
         local: '충무아트센터',
         discount: '70%',
@@ -48,6 +50,7 @@ const products = ref([
         date: '2025.6.15 ~ 7.30'
     },
     {
+        id: 1,
         name: '지킬 앤 하이드',
         local: '충무아트센터',
         discount: '70%',
@@ -55,6 +58,7 @@ const products = ref([
         date: '2025.6.15 ~ 7.30'
     },
     {
+        id: 1,
         name: '지킬 앤 하이드',
         local: '충무아트센터',
         discount: '70%',
@@ -62,6 +66,7 @@ const products = ref([
         date: '2025.6.15 ~ 7.30'
     },
     {
+        id: 1,
         name: '지킬 앤 하이드',
         local: '충무아트센터',
         discount: '70%',
@@ -69,6 +74,7 @@ const products = ref([
         date: '2025.6.15 ~ 7.30'
     },
     {
+        id: 1,
         name: '지킬 앤 하이드',
         local: '충무아트센터',
         discount: '70%',
@@ -76,6 +82,7 @@ const products = ref([
         date: '2025.6.15 ~ 7.30'
     },
     {
+        id: 1,
         name: '지킬 앤 하이드',
         local: '충무아트센터',
         discount: '70%',
@@ -83,6 +90,23 @@ const products = ref([
         date: '2025.6.15 ~ 7.30'
     },
     {
+        id: 1,
+        name: '지킬 앤 하이드',
+        local: '충무아트센터',
+        discount: '70%',
+        price: '4,500원',
+        date: '2025.6.15 ~ 7.30'
+    },
+    {
+        id: 1,
+        name: '지킬 앤 하이드',
+        local: '충무아트센터',
+        discount: '70%',
+        price: '4,500원',
+        date: '2025.6.15 ~ 7.30'
+    },
+    {
+        id: 1,
         name: '지킬 앤 하이드',
         local: '충무아트센터',
         discount: '70%',
@@ -172,7 +196,7 @@ onMounted(async () => {
         </div>
         <div class="row row-cols-5">
             <div class=" col mb-4" v-for="product in products">
-                <RouterLink :to="`/product/${product.id}`" class="text-decoration-none text-dark">
+                <RouterLink :to="`/products/${product.id}`" class="text-decoration-none text-dark">
                     <div class="card">
                         <img src="https://picsum.photos/450/600" class="card-img-top">
                         <div class="card-body">
