@@ -13,6 +13,11 @@ const router = createRouter({
       name: 'email-find',
       component: () => import('@/views/EmailFindView.vue'),
     },
+    {
+      path: '/password-reset',
+      name: 'password-reset',
+      component: () => import('@/views/PasswordFindView.vue'),
+    },
   ],
 })
 
