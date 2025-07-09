@@ -8,6 +8,11 @@ const router = createRouter({
       name: 'login',
       component: () => import('@/views/LoginView.vue'),
     },
+    {
+      path: '/email-find',
+      name: 'email-find',
+      component: () => import('@/views/EmailFindView.vue'),
+    },
   ],
 })
 

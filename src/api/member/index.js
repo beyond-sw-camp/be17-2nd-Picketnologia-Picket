@@ -16,4 +16,21 @@ const memberLogin = async (req) => {
   return data
 }
 
-export default { memberLogin }
+const findEmail = async (req) => {
+  let data = {}
+  // let url = '/api/auth/email/code'
+  let url = '/api/auth_email_code.js'
+
+  await api
+    .post(url, req)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.data
+    })
+
+  return data
+}
+
+export default { memberLogin, findEmail }
