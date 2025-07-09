@@ -65,6 +65,12 @@ const router = createRouter({
       component: () => import('@/views/mypage3.vue'),
     },
 
+    {
+      path: '/myaccount',
+      name: 'myaccount',
+      component: () => import('@/views/myaccount.vue'),
+    },
+
   ],
 })
 

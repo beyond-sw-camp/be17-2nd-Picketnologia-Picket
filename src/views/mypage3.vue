@@ -119,7 +119,11 @@
         </main>
       </div>
     </div>
+
+    
   </template>
+
+  
   
   <script setup>
   const reviews = [
@@ -133,6 +137,19 @@
     { date: '2025-07-08', show: '지킬 앤 하이드', title: '문의 납깁니다.', content: '문의2', public: '공개', answered: '답변 완료' },
     { date: '2025-07-08', show: '캣', title: '문의 납깁니다.', content: '문의3', public: '공개', answered: '답변 완료' },
   ];
+  import { onMounted } from 'vue'
+
+onMounted(() => {
+  try {
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'
+    document.head.appendChild(link)
+    console.log('Font Awesome CSS loaded.')
+  } catch (err) {
+    console.error('에러 발생:', err)
+  }
+})
   </script>
   
   <style scoped>

@@ -1,13 +1,8 @@
 <script setup>
 import { reactive, ref } from 'vue';
+import BookingModal from '@/views/BookingPage.vue'; // BookingPage.vue 컴포넌트 임포트
 
-// const tabs = reactive({
-//     detail: true,
-//     info: false,
-//     review: false,
-//     qna: false
-// })
-
+// 기존 코드 유지
 const tabs = ref([
     {
         name: '상품 소개'
@@ -39,15 +34,12 @@ const isTab = (tabName) => {
 <template>
     <div class="d-flex flex-column gap-5">
 
-        <!-- 상품 이미지, 간단 정보 start -->
         <div class="container-lg">
             <div class="d-flex gap-5 justify-content-center">
-                <!-- 이미지 영역 -->
                 <div>
                     <img src="https://picsum.photos/400/500" class="img-fluid rounded">
                 </div>
 
-                <!-- 공연 정보 영역 -->
                 <div class="d-flex flex-column justify-content-between">
                     <h2 class="fw-bold">뮤지컬 &lt;지킬 앤 하이드&gt;</h2>
 
@@ -60,14 +52,13 @@ const isTab = (tabName) => {
                     </ul>
 
                     <div class="d-grid">
-                        <button class="btn btn-light btn-lg border" type="button">예매하기</button>
+                        <button class="btn btn-light btn-lg border" type="button" data-bs-toggle="modal" data-bs-target="#bookingModal">
+                            예매하기
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- 상품 이미지, 간단 정보 end -->
-
-        <!-- 상품 정보 탭 -->
         <div class="container-lg">
             <ul class="nav nav-underline justify-content-between">
                 <li class="nav-item" v-for="tab in tabs">
@@ -77,7 +68,6 @@ const isTab = (tabName) => {
             </ul>
         </div>
 
-        <!-- 상품 소개 -->
         <div class="container-lg" v-if="isTab(tabs[0].name)">
             <div>
                 <h3 class="card-title mb-3">뮤지컬 <strong>별빛 속으로</strong></h3>
@@ -120,7 +110,6 @@ const isTab = (tabName) => {
             </div>
         </div>
 
-        <!-- 판매 정보 -->
         <div class="container-lg" v-if="isTab(tabs[1].name)">
             <h4 class="mb-4">판매정보</h4>
 
@@ -134,7 +123,6 @@ const isTab = (tabName) => {
                 </tbody>
             </table>
 
-            <!-- 상품 관련 정보 -->
             <h5 class="mt-4">상품 관련 정보</h5>
             <table class="table table-bordered">
                 <tbody>
@@ -177,7 +165,6 @@ const isTab = (tabName) => {
                 </tbody>
             </table>
 
-            <!-- 취소/환불 규정 -->
             <h5 class="mt-4">취소/환불 규정</h5>
             <div class="border p-3">
                 <p>
@@ -201,7 +188,6 @@ const isTab = (tabName) => {
                 - 취소수수료는 티켓 도착일 기준 부과, 배송료는 환불 불가
             </div>
 
-            <!-- 배송 및 티켓 안내 -->
             <h5 class="mt-4">배송 및 티켓 안내</h5>
             <div class="border p-3">
                 - 모바일티켓은 모바일 디바이스에서만 이용 가능하며, 결제 후 예매내역에서 확인
@@ -210,7 +196,6 @@ const isTab = (tabName) => {
                 - 모바일티켓 관련 상세 내용은 FAQ 참고
             </div>
 
-            <!-- 환불 안내 -->
             <h5 class="mt-4">환불 안내</h5>
             <div class="border p-3" style="white-space: pre-line; font-size: 0.9rem; line-height: 1.5;">
                 - 신용카드 결제 : 취소 처리 완료 후 4~5일 내 카드사 환불 확인 (체크카드 포함)
@@ -221,7 +206,6 @@ const isTab = (tabName) => {
                 - 환불 지연, 분쟁 시 관련 법령 및 고객센터 문의 권장
             </div>
 
-            <!-- 판매자 정보 -->
             <h5 class="mt-4">판매자 정보</h5>
             <table class="table table-bordered">
                 <tbody>
@@ -252,7 +236,6 @@ const isTab = (tabName) => {
                 </tbody>
             </table>
 
-            <!-- 예매 유의사항 -->
             <h5 class="mt-4">예매 유의사항</h5>
             <div class="border p-3" style="white-space: pre-line; font-size: 0.9rem; line-height: 1.5;">
                 - 반복적 예매 및 취소 시 서비스 이용 제한 가능
@@ -261,7 +244,6 @@ const isTab = (tabName) => {
                 - 원활한 서비스 이용 위해 주의 요망
             </div>
 
-            <!-- 티켓 수령 안내 -->
             <h5 class="mt-4">티켓 수령 안내</h5>
             <div class="border p-3" style="white-space: pre-line; font-size: 0.9rem; line-height: 1.5;">
                 - 공연 당일 현장 교부처에서 예약번호 및 본인 확인 후 수령 가능
@@ -272,7 +254,6 @@ const isTab = (tabName) => {
         <div class="container-lg" v-if="isTab(tabs[2].name)">
             <h4 class="mb-4">관람 후기</h4>
 
-            <!-- 후기 작성 폼 -->
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">후기 작성하기</h5>
@@ -282,7 +263,6 @@ const isTab = (tabName) => {
                             <input type="text" class="form-control" id="reviewWriter" placeholder="이름을 입력하세요">
                         </div>
 
-                        <!-- 별점 -->
                         <div class="form-group">
                             <label>평점</label>
                             <div>
@@ -314,8 +294,6 @@ const isTab = (tabName) => {
                 </div>
             </div>
 
-            <!-- 후기 목록 -->
-            <!-- 후기 작성 유의사항 -->
             <div class="alert alert-info" role="alert">
                 <strong>유의사항 안내</strong><br>
                 - 공연 내용과 무관한 비방, 광고, 욕설 등의 글은 사전 동의 없이 삭제될 수 있습니다.<br>
@@ -338,10 +316,8 @@ const isTab = (tabName) => {
                 </div>
             </div>
 
-            <!-- 후기 리스트 -->
             <div class="list-group">
 
-                <!-- 후기 1 -->
                 <div class="list-group-item">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <div>
@@ -360,7 +336,6 @@ const isTab = (tabName) => {
                     </div>
                 </div>
 
-                <!-- 후기 2 -->
                 <div class="list-group-item">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <div>
@@ -385,7 +360,6 @@ const isTab = (tabName) => {
         <div class="container-lg" v-if="isTab(tabs[3].name)">
             <h4 class="mb-4">Q&A</h4>
 
-            <!-- 질문 작성 폼 -->
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">질문 작성하기</h5>
@@ -404,7 +378,6 @@ const isTab = (tabName) => {
                 </div>
             </div>
 
-            <!-- 질문 목록 -->
             <div class="mb-4">
                 <h5>등록된 질문 (2)</h5>
                 <ul class="list-group">
@@ -425,7 +398,6 @@ const isTab = (tabName) => {
                 </ul>
             </div>
 
-            <!-- 질문 작성 유의사항 -->
             <div class="alert alert-warning" role="alert">
                 <h5 class="alert-heading">Q&A 작성 유의사항</h5>
                 <ul class="mb-0">
@@ -436,6 +408,7 @@ const isTab = (tabName) => {
             </div>
         </div>
 
+        <BookingModal />
 
     </div>
 </template>

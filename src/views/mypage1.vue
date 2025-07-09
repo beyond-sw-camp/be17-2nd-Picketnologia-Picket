@@ -24,7 +24,7 @@ const bookings = ref([
   {
     date: '2025-07-08',
     number: 'Y1234567890',
-    title: '콘서트 <제임스 블레이크 내한공연>',
+    title: '콘서트 <br><제임스 블레이크 내한공연>',
     time: '2025-08-01 19:00',
     seat: 'R석 A열 12번',
     quantity: '2매'
