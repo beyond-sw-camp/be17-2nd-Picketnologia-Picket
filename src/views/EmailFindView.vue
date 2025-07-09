@@ -20,7 +20,7 @@ const findEmail = async () => {
         return;
     }
 
-    const response = await api.memberFindEmail(req);
+    // const response = await api.memberFindEmail(req);
     // 여기에 API 호출 로직을 추가하여 이메일 찾기 기능을 구현합니다.
     console.log(`전화번호: ${req.phoneNumber}, 이름: ${req.userName}`);
     alert('이메일 찾기 요청이 완료되었습니다.'); // 임시 알림
