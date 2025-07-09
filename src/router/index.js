@@ -40,6 +40,31 @@ const router = createRouter({
       name: 'signup',
       component: () => import('@/views/SignupView.vue'),
     },
+
+    {
+      path: '/bookingpage',
+      name: 'bookingpage',
+      component: () => import('@/views/BookingPage.vue'),
+    },
+
+    {
+      path: '/mypage1',
+      name: 'mypage',
+      component: () => import('@/views/mypage1.vue'),
+    },
+
+    {
+      path: '/mypage2',
+      name: 'mypage2',
+      component: () => import('@/views/mypage2.vue'),
+    },
+
+    {
+      path: '/mypage3',
+      name: 'mypage3',
+      component: () => import('@/views/mypage3.vue'),
+    },
+
   ],
 })
 
