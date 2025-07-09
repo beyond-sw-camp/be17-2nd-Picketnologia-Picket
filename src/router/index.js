@@ -40,6 +40,46 @@ const router = createRouter({
       name: 'signup',
       component: () => import('@/views/SignupView.vue'),
     },
+    {
+      path: '/seller',
+      name: 'seller',
+      component: () => import('@/views/seller/Main.vue'),
+      children: [
+        {
+          path: '',
+          component: () => import('@/views/seller/DashBoardView.vue')
+        },
+        {
+          path: 'products/on-sale',
+          component: () => import('@/views/seller/ProductOnSaleView.vue')
+        },
+        {
+          path: 'products/sold-out',
+          component: () => import('@/views/seller/ProductSoldOutView.vue')
+        },
+        {
+          path: 'reservation',
+          component: () => import('@/views/seller/ReservationView.vue')
+        },
+        {
+          path: 'refund',
+          component: () => import('@/views/seller/RefundManagementView.vue')
+        },
+        {
+          path: 'review',
+          component: () => import('@/views/seller/Review.vue')
+        },
+        {
+          path: 'qna',
+          component: () => import('@/views/seller/QnaView.vue')
+        },
+        {
+          path: 'sale-statistics',
+          component: () => import('@/views/seller/SaleStatisticsView.vue')
+        }
+
+      ]
+    }
   ],
 })
 
