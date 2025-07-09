@@ -85,4 +85,47 @@ const verificationCode = async (req) => {
   return data
 }
 
-export default { memberLogin, findEmail, sendCode, confirmPasswordReset, verificationCode }
+const verificationCodeInSignup = async (req) => {
+  let data = {}
+  // let url = '/api/email/code/verify'
+  let url = '/api/email_code_verify'
+
+  await api
+    .post(url, req)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.data
+    })
+
+  return data
+}
+
+const requestSignup = async (req) => {
+  let data = {}
+  // let url = '/api/users/signup'
+  let url = '/api/users'
+  // let url = '/api/users_seller'
+
+  await api
+    .post(url, req)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.data
+    })
+
+  return data
+}
+
+export default {
+  memberLogin,
+  findEmail,
+  sendCode,
+  confirmPasswordReset,
+  verificationCode,
+  verificationCodeInSignup,
+  requestSignup,
+}
