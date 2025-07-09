@@ -1,12 +1,11 @@
 <script setup>
-import { reactive, ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import api from '@/api/product'
 
-// const tabs = reactive({
-//     detail: true,
-//     info: false,
-//     review: false,
-//     qna: false
-// })
+import BookingPage from '@/components/BookingPage.vue';
+
+const route = useRoute()
 
 const tabs = ref([
     {
@@ -34,6 +33,16 @@ const isTab = (tabName) => {
     else false;
 }
 
+const product = ref({})
+onMounted(async () => {
+    const productId = route.params.id
+    console.log(productId);
+
+    const response = await api.getProductDetail(productId)
+
+    console.log(response)
+    product.value = response.product
+})
 </script>
 
 <template>
@@ -44,23 +53,23 @@ const isTab = (tabName) => {
             <div class="d-flex gap-5 justify-content-center">
                 <!-- 이미지 영역 -->
                 <div>
-                    <img src="https://picsum.photos/400/500" class="img-fluid rounded">
+                    <img :src="`${product.image}`" class="img-fluid rounded">
                 </div>
 
                 <!-- 공연 정보 영역 -->
                 <div class="d-flex flex-column justify-content-between">
-                    <h2 class="fw-bold">뮤지컬 &lt;지킬 앤 하이드&gt;</h2>
+                    <h2 class="fw-bold">{{ product.name }}</h2>
 
                     <ul class="list-unstyled">
-                        <li class="mb-4"><strong>장소:</strong>충무아트센터 대극장</li>
-                        <li class="mb-4"><strong>공연 기간:</strong> 2024.07.01 ~ 2024.09.30</li>
-                        <li class="mb-4"><strong>공연 시간:</strong> 화~금 19:30 / 토 14:00, 18:00 / 일 15:00</li>
-                        <li class="mb-4"><strong>관람 연령:</strong> 만 13세 이상</li>
-                        <li class="mb-4"><strong>가격:</strong> VIP석 140,000원 / R석 120,000원</li>
+                        <li class="mb-4"><strong>장소:</strong>{{ product.location }}</li>
+                        <li class="mb-4"><strong>공연 기간:</strong> {{ product.period }}</li>
+                        <li class="mb-4"><strong>관람 연령:</strong> {{ product.age }}</li>
+                        <li class="mb-4"><strong>가격:</strong> VIP석 {{ product.price?.vip }} / R석 {{ product.price?.r }}
+                        </li>
                     </ul>
 
                     <div class="d-grid">
-                        <button class="btn btn-light btn-lg border" type="button">예매하기</button>
+                        <BookingPage class="btn btn-light btn-lg border" />
                     </div>
                 </div>
             </div>

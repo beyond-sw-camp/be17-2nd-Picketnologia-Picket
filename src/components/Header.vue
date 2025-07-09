@@ -18,6 +18,7 @@
                 <div class="d-flex gap-2 align-items-center">
                     <RouterLink class="link-underline-light link-dark" to="/login">로그인</RouterLink>
                     <RouterLink class="link-underline-light link-dark" to="/my-page">마이페이지</RouterLink>
+                    <RouterLink class="link-underline-light link-dark" to="/seller">판매자 관리 페이지</RouterLink>
                 </div>
             </div>
         </nav>
