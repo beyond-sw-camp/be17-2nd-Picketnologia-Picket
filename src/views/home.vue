@@ -172,7 +172,7 @@ onMounted(async () => {
         </div>
         <div class="row row-cols-5">
             <div class=" col mb-4" v-for="product in products">
-                <a href="product_detail.html" class="text-decoration-none text-dark">
+                <RouterLink :to="`/product/${product.id}`" class="text-decoration-none text-dark">
                     <div class="card">
                         <img src="https://picsum.photos/450/600" class="card-img-top">
                         <div class="card-body">
@@ -183,7 +183,7 @@ onMounted(async () => {
                             <p class="card-text text-body-secondary">{{ product.date }}</p>
                         </div>
                     </div>
-                </a>
+                </RouterLink>
             </div>
         </div>
     </section>
