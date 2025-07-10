@@ -198,7 +198,7 @@ onMounted(async () => {
                         <img :src="'https://picsum.photos/450/60' + index" class="card-img-top">
                         <div class="card-body">
                             <h5 class="card-title">{{ product.name }}</h5>
-                            <h6 class="card-subtitle mb-2">{{ product.local }}</h6>
+                            <h6 class="card-subtitle mb-2">{{ product.location }}</h6>
                             <p class="card-text text-danger">{{ product.discount }} <span class="card-text text-dark">{{
                                 product.price }}</span></p>
                             <p class="card-text text-body-secondary">{{ product.date }}</p>
