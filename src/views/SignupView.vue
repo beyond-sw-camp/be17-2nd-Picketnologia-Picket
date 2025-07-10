@@ -81,14 +81,17 @@ const requestVerificateCode = async () => {
 };
 
 const requestSignup = async () => {
+    console.log(states.password)
+    console.log(states.confirmPassword)
 
-    if (!states.password || states.ComponentPublicInstance) {
+    if (!states.password || !states.confirmPassword) {
         alert('비밀번호를 입력하세요');
         return;
     }
 
     if (states.password !== states.confirmPassword) {
-        alert('비밀번호가 일치하지 않습니다.')
+        console.log(states.password)
+        console.log(states.confirmPassword)
         return;
     }
 
@@ -252,7 +255,7 @@ const requestSignup = async () => {
                                 <div class="col-12">
                                     <div class="form-floating">
                                         <input type="password" class="form-control" id="passwordConfirm"
-                                            placeholder="비밀번호 확인" required v-model="states.passwordConfirm">
+                                            placeholder="비밀번호 확인" required v-model="states.confirmPassword">
                                         <label for="passwordConfirm">비밀번호 확인</label>
                                     </div>
                                 </div>
