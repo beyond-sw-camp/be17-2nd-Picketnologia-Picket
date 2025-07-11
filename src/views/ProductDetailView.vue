@@ -41,7 +41,7 @@ onMounted(async () => {
     const response = await api.getProductDetail(productId)
 
     console.log(response)
-    product.value = response.product
+    product.value = response.dbs.db
 })
 </script>
 
@@ -53,19 +53,18 @@ onMounted(async () => {
             <div class="d-flex gap-5 justify-content-center">
                 <!-- 이미지 영역 -->
                 <div>
-                    <img :src="`${product.image}`" class="img-fluid rounded">
+                    <img :src="product.poster" class="img-fluid rounded" style="width: 400px; height: 600px;">
                 </div>
 
                 <!-- 공연 정보 영역 -->
                 <div class="d-flex flex-column justify-content-between">
-                    <h2 class="fw-bold">{{ product.name }}</h2>
+                    <h2 class="fw-bold">{{ product.prfnm }}</h2>
 
                     <ul class="list-unstyled">
-                        <li class="mb-4"><strong>장소:</strong>{{ product.location }}</li>
-                        <li class="mb-4"><strong>공연 기간:</strong> {{ product.period }}</li>
-                        <li class="mb-4"><strong>관람 연령:</strong> {{ product.age }}</li>
-                        <li class="mb-4"><strong>가격:</strong> VIP석 {{ product.price?.vip }} / R석 {{ product.price?.r }}
-                        </li>
+                        <li class="mb-4"><strong>장소:</strong>{{ product.fcltynm }}</li>
+                        <li class="mb-4"><strong>공연 기간:</strong> {{ product.prfpdfrom }} ~ {{ product.prfpdto }}</li>
+                        <li class="mb-4"><strong>관람 연령:</strong> {{ product.prfage }}</li>
+                        <li class="mb-4"><strong>가격:</strong> {{ product.pcseguidance }} </li>
                     </ul>
 
                     <div class="d-grid">
@@ -88,7 +87,8 @@ onMounted(async () => {
 
         <!-- 상품 소개 -->
         <div class="container-lg" v-if="isTab(tabs[0].name)">
-            <div>
+            {{ product.sty }}
+            <!-- <div>
                 <h3 class="card-title mb-3">뮤지컬 <strong>별빛 속으로</strong></h3>
                 <p class="text-muted mb-4">장르: 뮤지컬 | 공연시간: 120분 (인터미션 15분 포함) | 관람등급: 만 12세 이상</p>
 
@@ -126,7 +126,7 @@ onMounted(async () => {
                     <li>• 어린이 및 휠체어석 관련 별도 문의 바랍니다.</li>
                     <li>• 티켓 교환 및 환불은 공연 당일 3일 전까지만 가능합니다.</li>
                 </ul>
-            </div>
+            </div> -->
         </div>
 
         <!-- 판매 정보 -->

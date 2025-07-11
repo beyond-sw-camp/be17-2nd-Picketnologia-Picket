@@ -144,7 +144,7 @@ watch(
 
 onMounted(async () => {
     const response = await api.getProducts()
-    products.value = response.products
+    products.value = response.dbs.db
 })
 
 </script>
@@ -194,14 +194,15 @@ onMounted(async () => {
         <div class="row row-cols-5">
             <div class=" col mb-4" v-for="product, index in products">
                 <RouterLink :to="`/products/${product.id}`" class="text-decoration-none text-dark">
-                    <div class="card">
-                        <img :src="'https://picsum.photos/450/60' + index" class="card-img-top">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ product.name }}</h5>
-                            <h6 class="card-subtitle mb-2">{{ product.location }}</h6>
-                            <p class="card-text text-danger">{{ product.discount }} <span class="card-text text-dark">{{
-                                product.price }}</span></p>
-                            <p class="card-text text-body-secondary">{{ product.date }}</p>
+                    <div class="card h-100">
+                        <!-- <img :src="'https://picsum.photos/450/60' + index" class="card-img-top"> -->
+                        <img :src="product.poster" class="card-img-top" style="width: 100%; height: 400px;">
+                        <div class="card-body d-flex flex-column justify-content-between">
+                            <h5 class="card-title">{{ product.title }}</h5>
+                            <h6 class="card-subtitle mb-2">{{ product.spot }}</h6>
+                            <!-- <p class="card-text text-danger">{{ product.discount }} <span class="card-text text-dark">{{
+                                product.price }}</span></p> -->
+                            <p class="card-text text-body-secondary">{{ product.from }} ~ {{ product.to }}</p>
                         </div>
                     </div>
                 </RouterLink>
