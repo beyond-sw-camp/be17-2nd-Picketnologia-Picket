@@ -1,6 +1,9 @@
 <script setup>
 import { reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const states = reactive({
     nickname: '',
@@ -135,6 +138,7 @@ const requestSignup = async () => {
     // }
 
     alert('회원가입이 완료되었습니다.');
+    router.push('/login');
 }
 </script>
 

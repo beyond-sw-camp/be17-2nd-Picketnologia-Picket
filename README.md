@@ -42,3 +42,60 @@
 # 피그마 주소
 
 [figma 주소](https://www.figma.com/design/Eahp7OBGzdPdH786uO95Cv/%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8-%EC%A0%95%EB%A6%AC?node-id=0-1&t=1yp74xPdMWkxE4xb-1)
+
+# 프로젝트 시연
+
+
+<details>
+  <summary>로그인</summary>
+  <div markdown="1">
+  <img src="gif/Animation.gif" alt="로그인" />
+  <br>
+  </div>
+</details>
+<br>
+
+<details>
+  <summary>계정찾기</summary>
+  <div markdown="1">
+  <img src="gif/계정찾기.gif" alt="계정찾기" />
+  <br>
+  </div>
+</details>
+<br>
+
+<details>
+  <summary>계정찾기</summary>
+  <div markdown="1">
+  <img src="gif/비밀번호찾기.gif" alt="비밀번호찾기" />
+  <br>
+  </div>
+</details>
+<br>
+
+<details>
+  <summary>일반 회원가입</summary>
+  <div markdown="1">
+  <img src="gif/일반 회원가입.gif" alt="일반 회원가입" />
+  <br>
+  </div>
+</details>
+<br>
+
+<details>
+  <summary>판매자 회원가입</summary>
+  <div markdown="1">
+  <img src="gif/판매자 회원가입.gif" alt="판매자 회원가입" />
+  <br>
+  </div>
+</details>
+<br>
+
+<details>
+  <summary>판매자 관리 페이지</summary>
+  <div markdown="1">
+  <img src="gif/판매자 관리 페이지.gif" alt="판매자 관리 페이지" />
+  <br>
+  </div>
+</details>
+<br>
