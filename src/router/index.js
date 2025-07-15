@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -76,11 +75,15 @@ const router = createRouter({
         {
           path: 'sale-statistics',
           component: () => import('@/views/seller/SaleStatisticsView.vue')
-        }
-
+        },
       ]
-    }
+    },
+    {
+      path: '/payment/result',
+      component: () => import('@/views/PaymentResultView.vue')
+    },
   ],
 })
+
 
 export default router
