@@ -99,3 +99,30 @@
   </div>
 </details>
 <br>
+
+<details>
+  <summary>마이 페이지</summary>
+  <div markdown="1">
+  <img src="gif/마이페이지.gif" alt="마이 페이지" />
+  <br>
+  </div>
+</details>
+<br>
+
+<details>
+  <summary>상세페이지</summary>
+  <div markdown="1">
+  <img src="gif/상세페이지.gif" alt="상세페이지" />
+  <br>
+  </div>
+</details>
+<br>
+
+<details>
+  <summary>예매하기</summary>
+  <div markdown="1">
+  <img src="gif/예매하기.gif" alt="예매하기" />
+  <br>
+  </div>
+</details>
+<br>
