@@ -34,6 +34,34 @@ const router = createRouter({
       name: 'password-reset',
       component: () => import('@/views/PasswordFindView.vue'),
     },
+    // {
+    //   path: '/my-page',
+    //   name: 'mypage',
+    //   component: () => import('@/views/seller/mypage1.vue'),
+    // },
+    {
+      path: '/mypage1',
+      name: 'my-page1',
+      component: () => import('@/views/seller/mypage1.vue'),
+    },
+
+    {
+      path: '/mypage2',
+      name: 'my-page2',
+      component: () => import('@/views/seller/mypage2.vue'),
+    },
+
+    {
+      path: '/mypage3',
+      name: 'my-page3',
+      component: () => import('@/views/seller/mypage3.vue'),
+    },
+
+    {
+      path: '/myaccount',
+      name: 'myaccount',
+      component: () => import('@/views/seller/myaccount.vue'),
+    },
     {
       path: '/sign-up',
       name: 'signup',

@@ -1,8 +1,9 @@
 <script setup>
 import { reactive } from 'vue';
 import { RouterLink } from 'vue-router';
-
+import { useRouter } from 'vue-router';
 import api from '@/api/member';
+const router = useRouter();
 
 const findEmailForm = reactive({
     phoneNumber: '',
@@ -23,7 +24,8 @@ const findEmail = async () => {
     // const response = await api.memberFindEmail(req);
     // 여기에 API 호출 로직을 추가하여 이메일 찾기 기능을 구현합니다.
     console.log(`전화번호: ${req.phoneNumber}, 이름: ${req.userName}`);
-    alert('이메일 찾기 요청이 완료되었습니다.'); // 임시 알림
+    alert('당신의 이메일은 test01@test.com 입니다.'); // 임시 알림
+         router.push('/login');
 };
 
 </script>

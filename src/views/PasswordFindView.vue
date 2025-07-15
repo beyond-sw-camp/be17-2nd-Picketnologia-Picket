@@ -87,7 +87,7 @@ const requestVerificationCode = async () => {
     }
 
     // 여기에 API 호출 로직을 추가하여 인증 코드 요청 기능을 구현합니다.
-    alert('인증 코드가 전송되었습니다.');
+    alert('인증 코드 확인이 완료되었습니다.');
     state.isVerified = true;
 
     // const response = await api.verificationCode(req);
