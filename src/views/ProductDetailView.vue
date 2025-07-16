@@ -1,8 +1,12 @@
 <script setup>
-import { reactive, ref } from 'vue';
-import BookingModal from '@/views/BookingPage.vue'; // BookingPage.vue 컴포넌트 임포트
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import api from '@/api/product'
 
-// 기존 코드 유지
+import BookingPage from '@/components/BookingPage.vue';
+
+const route = useRoute()
+
 const tabs = ref([
     {
         name: '상품 소개'
@@ -29,6 +33,16 @@ const isTab = (tabName) => {
     else false;
 }
 
+const product = ref({})
+onMounted(async () => {
+    const productId = route.params.id
+    console.log(productId);
+
+    const response = await api.getProductDetail(productId)
+
+    console.log(response)
+    product.value = response.dbs.db
+})
 </script>
 
 <template>
@@ -37,24 +51,21 @@ const isTab = (tabName) => {
         <div class="container-lg">
             <div class="d-flex gap-5 justify-content-center">
                 <div>
-                    <img src="https://picsum.photos/400/500" class="img-fluid rounded">
+                    <img :src="product.poster" class="img-fluid rounded" style="width: 400px; height: 600px;">
                 </div>
 
                 <div class="d-flex flex-column justify-content-between">
-                    <h2 class="fw-bold">뮤지컬 &lt;지킬 앤 하이드&gt;</h2>
+                    <h2 class="fw-bold">{{ product.prfnm }}</h2>
 
                     <ul class="list-unstyled">
-                        <li class="mb-4"><strong>장소:</strong>충무아트센터 대극장</li>
-                        <li class="mb-4"><strong>공연 기간:</strong> 2024.07.01 ~ 2024.09.30</li>
-                        <li class="mb-4"><strong>공연 시간:</strong> 화~금 19:30 / 토 14:00, 18:00 / 일 15:00</li>
-                        <li class="mb-4"><strong>관람 연령:</strong> 만 13세 이상</li>
-                        <li class="mb-4"><strong>가격:</strong> VIP석 140,000원 / R석 120,000원</li>
+                        <li class="mb-4"><strong>장소:</strong>{{ product.fcltynm }}</li>
+                        <li class="mb-4"><strong>공연 기간:</strong> {{ product.prfpdfrom }} ~ {{ product.prfpdto }}</li>
+                        <li class="mb-4"><strong>관람 연령:</strong> {{ product.prfage }}</li>
+                        <li class="mb-4"><strong>가격:</strong> {{ product.pcseguidance }} </li>
                     </ul>
 
                     <div class="d-grid">
-                        <button class="btn btn-light btn-lg border" type="button" data-bs-toggle="modal" data-bs-target="#bookingModal">
-                            예매하기
-                        </button>
+                        <BookingPage class="btn btn-light btn-lg border" />
                     </div>
                 </div>
             </div>
@@ -69,7 +80,8 @@ const isTab = (tabName) => {
         </div>
 
         <div class="container-lg" v-if="isTab(tabs[0].name)">
-            <div>
+            {{ product.sty }}
+            <!-- <div>
                 <h3 class="card-title mb-3">뮤지컬 <strong>별빛 속으로</strong></h3>
                 <p class="text-muted mb-4">장르: 뮤지컬 | 공연시간: 120분 (인터미션 15분 포함) | 관람등급: 만 12세 이상</p>
 
@@ -107,7 +119,7 @@ const isTab = (tabName) => {
                     <li>• 어린이 및 휠체어석 관련 별도 문의 바랍니다.</li>
                     <li>• 티켓 교환 및 환불은 공연 당일 3일 전까지만 가능합니다.</li>
                 </ul>
-            </div>
+            </div> -->
         </div>
 
         <div class="container-lg" v-if="isTab(tabs[1].name)">
