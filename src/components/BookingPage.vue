@@ -83,7 +83,7 @@ function nextStep() {
 //    alert('결제를 진행합니다.')
 // 사용자가 '확인'을 누르면 true를 반환하는 confirm 대화상자를 사용합니다.
     if (confirm('결제를 진행하시겠습니까?')) {
-      router.push('/payment-result')
+      router.push('/payment/result')
     }
   }
 }
