@@ -1,6 +1,7 @@
 <script setup>
 import { reactive } from 'vue';
 import api from '@/api/member'
+import Header from '@/components/auth/header.vue';
 
 const loginUser = reactive({
     email: '',
@@ -24,13 +25,7 @@ const login = async () => {
 
                         <main class="bg-body p-4 p-md-5 rounded-4 shadow">
                             <form @submit.prevent="login">
-                                <div class="text-center mb-4">
-                                    <RouterLink to="/">
-                                        <img src="../assets/image/logo.png" alt="picket 로고" class="w-50 mb-4">
-                                    </RouterLink>
-                                    <h1 class="h4 fw-bold text-dark mb-3">PICKET에 오신것을 환영합니다.</h1>
-                                    <p class="display-12 fw-bold text-uppercas">picket은 가장 빠른 티켓팅 플랫폼입니다.</p>
-                                </div>
+                                <Header view="login" />
 
                                 <div class="form-floating mb-3">
                                     <input type="email" class="form-control form-control-lg" id="floatingInput"
@@ -44,9 +39,9 @@ const login = async () => {
                                     <label for="floatingPassword">비밀번호</label>
                                 </div>
                                 <RouterLink to="/">
-                                <button class="btn btn-primary w-100 py-2 mt-4" type="button" @click="login">
-                                    로그인
-                                </button>
+                                    <button class="btn btn-primary w-100 py-2 mt-4" type="button" @click="login">
+                                        로그인
+                                    </button>
                                 </RouterLink>
                                 <div class="text-center mt-4">
                                     <RouterLink to="/email-find" class="text-decoration-none text-secondary small">

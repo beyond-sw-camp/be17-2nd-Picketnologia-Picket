@@ -22,17 +22,17 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/LoginView.vue'),
+      component: () => import('@/views/auth/LoginView.vue'),
     },
     {
       path: '/email-find',
       name: 'email-find',
-      component: () => import('@/views/EmailFindView.vue'),
+      component: () => import('@/views/auth/EmailFindView.vue'),
     },
     {
       path: '/password-reset',
       name: 'password-reset',
-      component: () => import('@/views/PasswordFindView.vue'),
+      component: () => import('@/views/auth/PasswordFindView.vue'),
     },
     // {
     //   path: '/my-page',
@@ -65,7 +65,7 @@ const router = createRouter({
     {
       path: '/sign-up',
       name: 'signup',
-      component: () => import('@/views/SignupView.vue'),
+      component: () => import('@/views/auth/SignupView.vue'),
     },
 
     // {

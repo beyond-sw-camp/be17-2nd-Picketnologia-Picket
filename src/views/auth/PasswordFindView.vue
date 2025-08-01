@@ -6,6 +6,8 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 import api from '@/api/member';
 
+import Header from '@/components/auth/header.vue';
+
 const state = reactive({
     email: '',
     verificationCode: '',
@@ -112,15 +114,7 @@ const requestVerificationCode = async () => {
                         <main class="bg-body p-4 p-md-5 rounded-4 shadow">
                             <form @submit.prevent="confirmPasswordReset">
 
-                                <div class="text-center mb-4">
-                                    <RouterLink to="/">
-                                        <img src="../assets/image/logo.png" alt="picket 로고" class="w-50 mb-4">
-                                    </RouterLink>
-                                    <h1 class="h2 fw-bold text-dark mb-3">비밀번호 찾기</h1>
-                                    <p class="text-secondary small">
-                                        가입하신 이메일 주소를 입력하시고 인증을 완료 하시면,<br>비밀번호 재설정이 가능합니다.
-                                    </p>
-                                </div>
+                                <Header view="password" />
 
                                 <div class="input-group mb-3">
                                     <input type="email" class="form-control form-control-lg" id="emailInput"
@@ -160,7 +154,7 @@ const requestVerificationCode = async () => {
                                 </div>
 
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                                    <RouterLink to="/" class="btn btn-secondary">취소</RouterLink>
+                                    <RouterLink to="/login" class="btn btn-secondary">취소</RouterLink>
                                     <button type="button" class="btn btn-primary"
                                         @click="confirmPasswordReset">확인</button>
                                 </div>
