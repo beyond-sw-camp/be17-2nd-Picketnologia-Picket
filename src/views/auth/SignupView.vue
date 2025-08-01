@@ -3,6 +3,8 @@ import { reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useRouter } from 'vue-router';
 
+import Header from '@/components/auth/header.vue';
+
 const router = useRouter();
 
 const states = reactive({
@@ -148,14 +150,9 @@ const requestSignup = async () => {
             <div class="row justify-content-center p-5">
                 <div class="col-12 col-md-10 col-lg-8 col-xl-6">
                     <main class="bg-body p-4 p-md-5 rounded-3 shadow">
-                        <div class="text-center mb-4">
-                            <RouterLink to="/">
-                                <img src="@/assets/image/logo.png" alt="picket 로고" class="w-50 mb-4">
-                            </RouterLink>
-                            <h1 class="h3 fw-bold">회원가입</h1>
-                        </div>
 
                         <form id="signupForm" @submit.prevent="requestSignup">
+                            <Header view="signup" />
                             <div class="mb-4">
                                 <label class="form-label fw-bold">회원 유형</label>
                                 <div>
@@ -293,9 +290,10 @@ const requestSignup = async () => {
                                 </div>
                             </div>
 
-                            <div class="d-grid mt-4">
+                            <div class="d-grid mt-4 gap-2">
                                 <button class="btn btn-primary btn-lg" type="submit"
                                     @click="requestSignup">회원가입</button>
+                                <RouterLink to="/login" class="btn btn-outline-secondary btn-lg">취소</RouterLink>
                             </div>
                         </form>
                     </main>
