@@ -2,7 +2,7 @@ import api from '@/plugins/axiosInterceptor'
 
 const memberLogin = async (req) => {
   let data = {}
-  let url = '/api/users/login'
+  let url = 'http://localhost:8080/login'
 
   await api
     .post(url, req)
@@ -85,10 +85,15 @@ const verificationCode = async (req) => {
   return data
 }
 
-const verificationCodeInSignup = async (req) => {
+/**
+ * 이메일 인증 코드 검증 api
+ * @param {} req
+ * @returns
+ */
+const verifyEmailCode = async (req) => {
   let data = {}
   // let url = '/api/email/code/verify'
-  let url = '/api/email_code_verify'
+  let url = 'http://localhost:8080/auth/email/verify-code'
 
   await api
     .post(url, req)
@@ -102,14 +107,53 @@ const verificationCodeInSignup = async (req) => {
   return data
 }
 
+/**
+ * 이메일 인증 코드 전송 api
+ * @param {String} req.email
+ * @returns
+ */
+const requestSendVerifyCode = async (req) => {
+  let data = {}
+  let url = 'http://localhost:8080/auth/email/verify-code'
+
+  await api
+    .get(url, { params: req })
+    .then((res) => {
+      console.log(res)
+      data = res.data
+    })
+    .catch((error) => {
+      console.log(error)
+      data = error.data
+    })
+
+  return data
+}
+
 const requestSignup = async (req) => {
   let data = {}
-  // let url = '/api/users/signup'
-  let url = '/api/users'
+
+  let url = 'http://localhost:8080/user/signup'
   // let url = '/api/users_seller'
 
   await api
     .post(url, req)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.data
+    })
+
+  return data
+}
+
+const getSignupViewInfo = async () => {
+  let data = {}
+  let url = 'http://localhost:8080/user/signup'
+
+  await api
+    .get(url)
     .then((res) => {
       data = res.data
     })
@@ -126,6 +170,8 @@ export default {
   sendCode,
   confirmPasswordReset,
   verificationCode,
-  verificationCodeInSignup,
+  verifyEmailCode,
   requestSignup,
+  requestSendVerifyCode,
+  getSignupViewInfo,
 }
