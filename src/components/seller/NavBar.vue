@@ -14,6 +14,10 @@ const navs = ref([
         to: '/seller/products/on-sale'
     },
     {
+        name: '신규 상품 등록',
+        to: '/seller/products/creation'
+    },
+    {
         name: '종료된 공연',
         to: '/seller/products/sold-out'
     },

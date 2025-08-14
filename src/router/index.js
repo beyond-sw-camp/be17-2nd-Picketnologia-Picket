@@ -22,17 +22,17 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/LoginView.vue'),
+      component: () => import('@/views/auth/LoginView.vue'),
     },
     {
       path: '/email-find',
       name: 'email-find',
-      component: () => import('@/views/EmailFindView.vue'),
+      component: () => import('@/views/auth/EmailFindView.vue'),
     },
     {
       path: '/password-reset',
       name: 'password-reset',
-      component: () => import('@/views/PasswordFindView.vue'),
+      component: () => import('@/views/auth/PasswordFindView.vue'),
     },
     // {
     //   path: '/my-page',
@@ -65,14 +65,14 @@ const router = createRouter({
     {
       path: '/sign-up',
       name: 'signup',
-      component: () => import('@/views/SignupView.vue'),
+      component: () => import('@/views/auth/SignupView.vue'),
     },
 
-    {
-      path: '/bookingpage',
-      name: 'bookingpage',
-      component: () => import('@/views/BookingPage.vue'),
-    },
+    // {
+    //   path: '/bookingpage',
+    //   name: 'bookingpage',
+    //   component: () => import('@/views/BookingPage.vue'),
+    // },
 
     {
       path: '/mypage1',
@@ -105,44 +105,47 @@ const router = createRouter({
       children: [
         {
           path: '',
-          component: () => import('@/views/seller/DashBoardView.vue')
+          component: () => import('@/views/seller/DashBoardView.vue'),
         },
         {
           path: 'products/on-sale',
-          component: () => import('@/views/seller/ProductOnSaleView.vue')
+          component: () => import('@/views/seller/ProductOnSaleView.vue'),
         },
         {
           path: 'products/sold-out',
-          component: () => import('@/views/seller/ProductSoldOutView.vue')
+          component: () => import('@/views/seller/ProductSoldOutView.vue'),
         },
         {
           path: 'reservation',
-          component: () => import('@/views/seller/ReservationView.vue')
+          component: () => import('@/views/seller/ReservationView.vue'),
         },
         {
           path: 'refund',
-          component: () => import('@/views/seller/RefundManagementView.vue')
+          component: () => import('@/views/seller/RefundManagementView.vue'),
         },
         {
           path: 'review',
-          component: () => import('@/views/seller/Review.vue')
+          component: () => import('@/views/seller/Review.vue'),
         },
         {
           path: 'qna',
-          component: () => import('@/views/seller/QnaView.vue')
+          component: () => import('@/views/seller/QnaView.vue'),
         },
         {
           path: 'sale-statistics',
-          component: () => import('@/views/seller/SaleStatisticsView.vue')
+          component: () => import('@/views/seller/SaleStatisticsView.vue'),
         },
-      ]
+        {
+          path: 'products/creation',
+          component: () => import('@/views/seller/ProductCreateView.vue'),
+        },
+      ],
     },
     {
       path: '/payment/result',
-      component: () => import('@/views/PaymentResultView.vue')
+      component: () => import('@/views/PaymentResultView.vue'),
     },
   ],
 })
-
 
 export default router
