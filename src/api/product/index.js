@@ -33,18 +33,5 @@ const getProductDetail = async (productId) => {
   return data
 }
 
-const register = async (req) => {
-  let data = {};
-  let url = '/products/register';
 
-  await api.post(url, req)
-    .then((res) => {
-      data = res.data;
-    })
-    .catch((error) => {
-      data = error.data;
-    });
-
-  return data;
-}
-export default { getProducts, getProductDetail, register }
+export default { getProducts, getProductDetail }

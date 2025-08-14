@@ -58,7 +58,6 @@ const onSubmit = async () => {
 
         if (data.success !== false) {
             alert('리뷰가 성공적으로 등록되었습니다.');
-            router.push("/");
         } else {
             alert(data.message || "리뷰 등록에 실패했습니다.");
         }
@@ -72,6 +71,8 @@ const onSubmit = async () => {
 const reviews = ref([]);
 const totalPages = ref(0);
 const currentPage = ref(1);
+const totalCount = ref(0);
+const totalRating = ref(0);
 
 const loadReviews = async (page = 1) => {
     try {
@@ -80,8 +81,13 @@ const loadReviews = async (page = 1) => {
             reviews.value = data.reviewDtoLists;
             totalPages.value = data.totalPages;
             currentPage.value = data.currentPage + 1;
+            totalCount.value = data.totalCount;
+            totalRating.value = data.totalRating;
+            console.log(data)
         } else {
             reviews.value = [];
+            totalCount.value = 0;
+            averageRating.value = 0;
         }
     } catch (error) {
         console.error('리뷰 로딩 오류:', error);
@@ -92,6 +98,13 @@ const loadReviews = async (page = 1) => {
 onMounted(() => {
     loadReviews();
 });
+
+const formatDate = (dateString) => {
+    if (dateString) {
+        return dateString.split('T')[0];
+    }
+    return '';
+};
 </script>
 
 <template>
@@ -383,15 +396,27 @@ onMounted(() => {
                 <div>
                     <!-- 리뷰 목록이 바로 뜸 -->
                     <div v-if="reviews.length > 0">
-                        <h5>후기 목록</h5>
-                        <div v-for="review in reviews" :key="review.id" class="list-group-item">
-                            <div class="mb-1">
-                                <strong>{{ review.name }}</strong>
+                        <h5 class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                관람 후기 <span class="text-secondary fw-normal">({{ totalCount }})</span>
                             </div>
-                            <p class="mb-1">{{ review.comment }}</p>
-                            <div class="text-warning">
+                            <div class="d-flex align-items-center">
+                                <div class="text-dark me-2">
+                                    <span v-for="i in 5" :key="i">
+                                        {{ i <= totalRating ? '★' : '☆' }} </span>
+                                </div>
+                                <div class="h4 m-0 p-0 text-dark">{{ totalRating.toFixed(1) }}</div>
+                            </div>
+                        </h5>
+
+                        <div v-for="review in reviews" :key="review.id" class="list-group-item">
+                            <div class="text-dark">
                                 <span v-for="i in 5" :key="i">
                                     {{ i <= review.rating ? '★' : '☆' }} </span>
+                            </div>
+                            <p class="mb-1">{{ review.comment }}</p>
+                            <div class="mb-1">
+                                <strong>{{ review.name }} {{ formatDate(review.createdAt) }}</strong>
                             </div>
                         </div>
                     </div>
