@@ -2,6 +2,8 @@
 import { reactive } from 'vue';
 import api from '@/api/member'
 import Header from '@/components/auth/header.vue';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 const loginUser = reactive({
     email: '',
@@ -9,9 +11,12 @@ const loginUser = reactive({
 });
 
 const login = async () => {
-    console.log('로그인 시도:', loginUser.email, loginUser.password);
     const response = await api.memberLogin(loginUser);
-    console.log('로그인 응답:', response);
+    if (response.success) {
+        router.push('/');
+    } else {
+        alert('로그인 실패: ' + response.message);
+    }
 };
 
 </script>
@@ -38,11 +43,9 @@ const login = async () => {
                                         placeholder="Password" required v-model="loginUser.password">
                                     <label for="floatingPassword">비밀번호</label>
                                 </div>
-                                <RouterLink to="/">
-                                    <button class="btn btn-primary w-100 py-2 mt-4" type="button" @click="login">
-                                        로그인
-                                    </button>
-                                </RouterLink>
+                                <button class="btn btn-primary w-100 py-2 mt-4" type="button" @click="login">
+                                    로그인
+                                </button>
                                 <div class="text-center mt-4">
                                     <RouterLink to="/email-find" class="text-decoration-none text-secondary small">
                                         아이디 찾기

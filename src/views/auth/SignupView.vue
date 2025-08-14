@@ -1,7 +1,8 @@
 <script setup>
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useRouter } from 'vue-router';
+import api from '@/api/member';
 
 import Header from '@/components/auth/header.vue';
 
@@ -16,7 +17,7 @@ const states = reactive({
     confirmPassword: '',
     phoneNumber: '',
     gender: '',
-    userType: 'regular',
+    userType: '',
     term: false,
 });
 
@@ -33,6 +34,31 @@ const toggleStates = reactive({
 
 const code = ref('');
 
+const userType = ref([
+    {
+        name: "NORMAL",
+        description: "일반 사용자"
+    },
+    {
+        name: "SELLER",
+        description: "판매자"
+    }
+])
+
+const gender = ref([
+    {
+        name: "MALE",
+        description: "남성"
+    },
+    {
+        name: "FEMALE",
+        description: "여성"
+    }
+])
+
+/**
+ * 이메일 인증 코드 전송 요청
+ */
 const sendVerificationCode = async () => {
     const req = {
         email: states.email.trim(),
@@ -43,18 +69,18 @@ const sendVerificationCode = async () => {
         return;
     }
 
-    // 이메일 인증 코드 전송 로직
-    // const response = await api.sendVerificationCode({ email });
-    // if (response.success) {
-    //     alert('인증 코드가 전송되었습니다.');
-    // } else {
-    //     alert('인증 코드 전송에 실패했습니다.');
-    // }
-
-    toggleStates.isSendCode = true;
-    alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
+    const response = await api.requestSendVerifyCode(req);
+    if (response.success) {
+        alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
+        toggleStates.isSendCode = true;
+    } else {
+        alert('인증 코드 전송에 실패했습니다.');
+    }
 };
 
+/**
+ * 이메일 인증 코드 검증 요청
+ */
 const requestVerificateCode = async () => {
 
     const req = {
@@ -72,19 +98,18 @@ const requestVerificateCode = async () => {
         return;
     }
 
-    // 인증 코드 검증 로직
-    // const response = await api.verifyCodeInSignup(req);
-    // if (response.success) {
-    //     toggleStates.isVerified = true;
-    //     alert('인증이 완료되었습니다.');
-    // } else {
-    //     alert('인증 코드가 잘못되었습니다. 다시 시도해주세요.');
-    // }
-
-    toggleStates.isVerified = true;
-    alert('인증이 완료되었습니다.');
+    const response = await api.verifyEmailCode(req);
+    if (response.success) {
+        toggleStates.isVerified = true;
+        alert('인증이 완료되었습니다.');
+    } else {
+        alert('인증 코드가 잘못되었습니다. 다시 시도해주세요.');
+    }
 };
 
+/**
+ * 회원 가입 요청
+ */
 const requestSignup = async () => {
     console.log(states.password)
     console.log(states.confirmPassword)
@@ -115,8 +140,6 @@ const requestSignup = async () => {
         return;
     }
 
-    // 회원가입 요청 로직
-
     const req = {
         nickname: states.nickname.trim(),
         name: states.name.trim(),
@@ -132,16 +155,31 @@ const requestSignup = async () => {
         businessAddress: sellerFields.businessAddress.trim(),
     };
 
-    // const response = await api.requestSignup(req);
-    // if (response.success) {
-    //     alert('회원가입이 완료되었습니다.');
-    // } else {
-    //     alert('회원가입에 실패했습니다. 다시 시도해주세요.');
-    // }
-
-    alert('회원가입이 완료되었습니다.');
-    router.push('/login');
+    const response = await api.requestSignup(req);
+    if (response.success) {
+        alert('회원가입이 완료되었습니다.');
+        router.push('/login');
+    } else {
+        alert('회원가입에 실패했습니다. 다시 시도해주세요.');
+    }
 }
+
+/**
+ * 회원 가입 뷰가 onMounted될 때 사용자 유형과 성별 정보를 가져온다.
+ */
+onMounted(async () => {
+    const response = await api.getSignupViewInfo();
+    if (response.success) {
+        userType.value = response.results.userTypes;
+        gender.value = response.results.genders;
+
+        // 회원 유형, 성별 초기화
+        states.userType = userType.value[0].name;
+        states.gender = gender.value[0].name;
+    } else {
+        console.error('회원가입 뷰 정보 가져오기 실패:', response.error);
+    }
+});
 </script>
 
 <template>
@@ -158,13 +196,16 @@ const requestSignup = async () => {
                                 <div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="userType" id="regularMember"
-                                            value="regular" checked v-model="states.userType">
-                                        <label class="form-check-label" for="regularMember">일반 회원</label>
+                                            :value="userType[0].name" checked v-model="states.userType">
+                                        <label class="form-check-label" for="regularMember">{{ userType[0].description
+                                        }}</label>
                                     </div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="userType" id="sellerMember"
-                                            value="seller" v-model="states.userType">
-                                        <label class="form-check-label" for="sellerMember">판매자 회원</label>
+                                            :value="userType[1].name" v-model="states.userType">
+                                        <label class="form-check-label" for="sellerMember">
+                                            {{ userType[1].description }}
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -203,13 +244,17 @@ const requestSignup = async () => {
                                 <div class="col-md-6 d-flex align-items-center">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="gender" id="genderMale"
-                                            value="male" checked v-model="states.gender">
-                                        <label class="form-check-label" for="genderMale">남자</label>
+                                            :value="gender[0].name" checked v-model="states.gender">
+                                        <label class="form-check-label" for="genderMale">
+                                            {{ gender[0].description }}
+                                        </label>
                                     </div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="gender" id="genderFemale"
-                                            value="female" v-model="states.gender">
-                                        <label class="form-check-label" for="genderFemale">여자</label>
+                                            :value="gender[1].name" v-model="states.gender">
+                                        <label class="form-check-label" for="genderFemale">
+                                            {{ gender[1].description }}
+                                        </label>
                                     </div>
                                 </div>
                                 <div class="col-12">
@@ -262,7 +307,7 @@ const requestSignup = async () => {
                                 </div>
                             </div>
 
-                            <div id="seller-fields" class="mt-4" v-if="states.userType === 'seller'">
+                            <div id="seller-fields" class="mt-4" v-if="states.userType === userType[1].name">
                                 <hr>
                                 <h5 class="my-4 fw-bold">판매자 정보</h5>
                                 <div class="row g-3">
@@ -291,8 +336,7 @@ const requestSignup = async () => {
                             </div>
 
                             <div class="d-grid mt-4 gap-2">
-                                <button class="btn btn-primary btn-lg" type="submit"
-                                    @click="requestSignup">회원가입</button>
+                                <button class="btn btn-primary btn-lg" type="submit">회원가입</button>
                                 <RouterLink to="/login" class="btn btn-outline-secondary btn-lg">취소</RouterLink>
                             </div>
                         </form>

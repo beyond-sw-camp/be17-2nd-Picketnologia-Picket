@@ -80,8 +80,8 @@ function nextStep() {
     step.value++
   } else if (step.value === 3) {
     if (!deliveryMethod.value) return alert('수령 방식을 선택하세요.')
-//    alert('결제를 진행합니다.')
-// 사용자가 '확인'을 누르면 true를 반환하는 confirm 대화상자를 사용합니다.
+    //    alert('결제를 진행합니다.')
+    // 사용자가 '확인'을 누르면 true를 반환하는 confirm 대화상자를 사용합니다.
     if (confirm('결제를 진행하시겠습니까?')) {
       router.push('/payment/result')
     }
@@ -95,7 +95,7 @@ function prevStep() {
 
 <template>
   <!-- 예매하기 버튼 -->
-  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingModal">
+  <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#bookingModal">
     예매하기
   </button>
 

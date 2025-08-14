@@ -116,10 +116,10 @@ const formatDate = (dateString) => {
                     <img :src="product.poster" class="img-fluid rounded" style="width: 400px; height: 600px;">
                 </div>
 
-                <div class="d-flex flex-column justify-content-between">
+                <div class="d-flex flex-column gap-4">
                     <h2 class="fw-bold">{{ product.prfnm }}</h2>
 
-                    <ul class="list-unstyled">
+                    <ul class="list-unstyled flex-fill">
                         <li class="mb-4"><strong>장소:</strong>{{ product.fcltynm }}</li>
                         <li class="mb-4"><strong>공연 기간:</strong> {{ product.prfpdfrom }} ~ {{ product.prfpdto }}</li>
                         <li class="mb-4"><strong>관람 연령:</strong> {{ product.prfage }}</li>
@@ -127,7 +127,7 @@ const formatDate = (dateString) => {
                     </ul>
 
                     <div class="d-grid">
-                        <BookingPage class="btn btn-light btn-lg border" />
+                        <BookingPage />
                     </div>
                 </div>
             </div>
