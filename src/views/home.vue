@@ -34,84 +34,14 @@ const fetchData = reactive({
 
 const products = ref([
     {
-        id: 1,
+        idx: 1,
         name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
+        venueName: '충무아트센터',
         price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
-    },
-    {
-        id: 1,
-        name: '지킬 앤 하이드',
-        local: '충무아트센터',
-        discount: '70%',
-        price: '4,500원',
-        date: '2025.6.15 ~ 7.30'
+        startDate: '2025.6.15 ~ 7.30',
+        endDate: "2025.7.30",
+        posterUrl: '',
+        price: 4500,
     }
 ])
 
@@ -144,7 +74,11 @@ watch(
 
 onMounted(async () => {
     const response = await api.getProducts()
-    products.value = response.dbs.db
+    if (response.success) {
+        products.value = response.results.productList
+    } else {
+        products.value = []
+    }
 })
 
 </script>
@@ -193,16 +127,17 @@ onMounted(async () => {
         </div>
         <div class="row row-cols-5">
             <div class=" col mb-4" v-for="product, index in products">
-                <RouterLink :to="`/products/${product.id}`" class="text-decoration-none text-dark">
+                <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
                     <div class="card h-100">
                         <!-- <img :src="'https://picsum.photos/450/60' + index" class="card-img-top"> -->
-                        <img :src="product.poster" class="card-img-top" style="width: 100%; height: 400px;">
+                        <img :src="product.posterUrl" class="card-img-top" style="width: 100%; height: 400px;">
                         <div class="card-body d-flex flex-column justify-content-between">
                             <h5 class="card-title">{{ product.title }}</h5>
-                            <h6 class="card-subtitle mb-2">{{ product.spot }}</h6>
-                            <!-- <p class="card-text text-danger">{{ product.discount }} <span class="card-text text-dark">{{
-                                product.price }}</span></p> -->
-                            <p class="card-text text-body-secondary">{{ product.from }} ~ {{ product.to }}</p>
+                            <h6 class="card-subtitle mb-2">{{ product.venueName }}</h6>
+                            <span class="card-text text-dark">
+                                {{ product.price }}
+                            </span>
+                            <p class="card-text text-body-secondary">{{ product.startDate }} ~ {{ product.endDate }}</p>
                         </div>
                     </div>
                 </RouterLink>
