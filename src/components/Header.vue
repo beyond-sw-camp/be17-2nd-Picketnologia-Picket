@@ -31,14 +31,10 @@ const setActiveTab = (tab) => {
     </nav>
 
     <!-- tab start -->
-    <ul class="nav nav-underline justify-content-center fs-4 border-bottom border-top bg-body-tertiary">
+    <ul class="nav nav-underline justify-content-center fs-4 border-bottom border-top bg-light-subtle">
       <li class="nav-item" v-for="tab in tabs" :key="tab">
-        <a
-          class="nav-link text-black"
-          :class="{ active: activeTab === tab }"
-          href="#"
-          @click.prevent="setActiveTab(tab)"
-        >
+        <a class="nav-link text-black" :class="{ active: activeTab === tab }" href="#"
+          @click.prevent="setActiveTab(tab)">
           {{ tab }}
         </a>
       </li>
