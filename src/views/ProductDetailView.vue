@@ -1,7 +1,8 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, reactive } from 'vue';
 import { useRoute } from 'vue-router';
 import api from '@/api/product'
+import review from '@/api/review';
 
 import BookingPage from '@/components/BookingPage.vue';
 
@@ -43,6 +44,54 @@ onMounted(async () => {
     console.log(response)
     product.value = response.dbs.db
 })
+
+
+const reviewForm = reactive({
+    name: '',
+    rating: 0,
+    comment: ''
+});
+
+const onSubmit = async () => {
+    try {
+        const data = await review.register(reviewForm);
+
+        if (data.success !== false) {
+            alert('리뷰가 성공적으로 등록되었습니다.');
+            router.push("/");
+        } else {
+            alert(data.message || "리뷰 등록에 실패했습니다.");
+        }
+    } catch (error) {
+        console.error('Submit error:', error);
+        alert("요청 처리 중 오류가 발생했습니다.");
+    }
+}
+
+
+const reviews = ref([]);
+const totalPages = ref(0);
+const currentPage = ref(1);
+
+const loadReviews = async (page = 1) => {
+    try {
+        const data = await review.getReviews(page, 5);
+        if (data && data.reviewDtoLists) {
+            reviews.value = data.reviewDtoLists;
+            totalPages.value = data.totalPages;
+            currentPage.value = data.currentPage + 1;
+        } else {
+            reviews.value = [];
+        }
+    } catch (error) {
+        console.error('리뷰 로딩 오류:', error);
+        reviews.value = [];
+    }
+};
+
+onMounted(() => {
+    loadReviews();
+});
 </script>
 
 <template>
@@ -269,37 +318,38 @@ onMounted(async () => {
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">후기 작성하기</h5>
-                    <form>
+                    <form @submit.prevent="onSubmit">
                         <div class="form-group">
                             <label for="reviewWriter">작성자</label>
-                            <input type="text" class="form-control" id="reviewWriter" placeholder="이름을 입력하세요">
+                            <input type="text" class="form-control" id="reviewWriter" v-model="reviewForm.name"
+                                placeholder="이름을 입력하세요">
                         </div>
 
                         <div class="form-group">
                             <label>평점</label>
                             <div>
                                 <label class="mr-2">
-                                    <input type="radio" name="rating" value="5"> ★★★★★
+                                    <input type="radio" name="rating" value="5" v-model="reviewForm.rating"> ★★★★★
                                 </label>
                                 <label class="mr-2">
-                                    <input type="radio" name="rating" value="4"> ★★★★☆
+                                    <input type="radio" name="rating" value="4" v-model="reviewForm.rating"> ★★★★☆
                                 </label>
                                 <label class="mr-2">
-                                    <input type="radio" name="rating" value="3"> ★★★☆☆
+                                    <input type="radio" name="rating" value="3" v-model="reviewForm.rating"> ★★★☆☆
                                 </label>
                                 <label class="mr-2">
-                                    <input type="radio" name="rating" value="2"> ★★☆☆☆
+                                    <input type="radio" name="rating" value="2" v-model="reviewForm.rating"> ★★☆☆☆
                                 </label>
                                 <label class="mr-2">
-                                    <input type="radio" name="rating" value="1"> ★☆☆☆☆
+                                    <input type="radio" name="rating" value="1" v-model="reviewForm.rating"> ★☆☆☆☆
                                 </label>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label for="reviewContent">내용</label>
-                            <textarea class="form-control" id="reviewContent" rows="4"
-                                placeholder="후기를 남겨주세요"></textarea>
+                            <textarea class="form-control" id="reviewContent" rows="4" placeholder="후기를 남겨주세요"
+                                v-model="reviewForm.comment" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">등록하기</button>
                     </form>
@@ -330,99 +380,103 @@ onMounted(async () => {
 
             <div class="list-group">
 
-                <div class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <div>
-                            <strong>김하늘</strong>
-                            <small class="text-muted ml-2">2024.06.25</small>
-                        </div>
-                        <div>
-                            <a href="#" class="text-secondary mr-2">수정</a>
-                            <a href="#" class="text-secondary mr-2">삭제</a>
-                            <a href="#" class="text-secondary">신고</a>
+                <div>
+                    <!-- 리뷰 목록이 바로 뜸 -->
+                    <div v-if="reviews.length > 0">
+                        <h5>후기 목록</h5>
+                        <div v-for="review in reviews" :key="review.id" class="list-group-item">
+                            <div class="mb-1">
+                                <strong>{{ review.name }}</strong>
+                            </div>
+                            <p class="mb-1">{{ review.comment }}</p>
+                            <div class="text-warning">
+                                <span v-for="i in 5" :key="i">
+                                    {{ i <= review.rating ? '★' : '☆' }} </span>
+                            </div>
                         </div>
                     </div>
-                    <p class="mb-1">무대 연출과 배우들 연기가 너무 좋아서 감동받았습니다. 추천!</p>
-                    <div class="text-warning">
-                        ★★★★★
-                    </div>
-                </div>
 
-                <div class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <div>
-                            <strong>박소담</strong>
-                            <small class="text-muted ml-2">2024.06.24</small>
-                        </div>
-                        <div>
-                            <a href="#" class="text-secondary mr-2">수정</a>
-                            <a href="#" class="text-secondary mr-2">삭제</a>
-                            <a href="#" class="text-secondary">신고</a>
-                        </div>
-                    </div>
-                    <p class="mb-1">공연이 길었지만 인터미션 덕분에 괜찮았어요.</p>
-                    <div class="text-warning">
-                        ★★★★☆
+                    <!-- 리뷰가 없을 때 -->
+                    <div v-else>
+                        <h5>후기 목록</h5>
+                        <p class="text-muted">리뷰가 없습니다.</p>
                     </div>
                 </div>
 
-            </div>
+                <!-- 페이지네이션 -->
+                <nav v-if="totalPages > 1" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                            <button class="page-link" @click="loadReviews(currentPage - 1)">이전</button>
+                        </li>
 
-        </div>
-        <div class="container-lg" v-if="isTab(tabs[3].name)">
-            <h4 class="mb-4">Q&A</h4>
+                        <li v-for="page in totalPages" :key="page" class="page-item"
+                            :class="{ active: page === currentPage }">
+                            <button class="page-link" @click="loadReviews(page)">{{ page }}</button>
+                        </li>
 
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">질문 작성하기</h5>
-                    <form>
-                        <div class="form-group">
-                            <label for="qnaWriter">작성자</label>
-                            <input type="text" class="form-control" id="qnaWriter" placeholder="이름을 입력하세요">
-                        </div>
-                        <div class="form-group">
-                            <label for="qnaQuestion">질문 내용</label>
-                            <textarea class="form-control" id="qnaQuestion" rows="4"
-                                placeholder="궁금한 내용을 작성해 주세요"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">등록하기</button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <h5>등록된 질문 (2)</h5>
-                <ul class="list-group">
-                    <li class="list-group-item">
-                        <strong>김문의</strong> <small class="text-muted">2024-06-24</small>
-                        <p>공연 당일 주차 가능할까요?</p>
-                        <div class="bg-light p-2 mt-2">
-                            <strong>답변:</strong> 주차장은 공연장 지하에 마련되어 있으며 선착순 이용 가능합니다.
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>이관람</strong> <small class="text-muted">2024-06-23</small>
-                        <p>아이와 함께 관람해도 괜찮나요?</p>
-                        <div class="bg-light p-2 mt-2">
-                            <strong>답변:</strong> 본 공연은 만 7세 이상 관람 가능합니다.
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="alert alert-warning" role="alert">
-                <h5 class="alert-heading">Q&A 작성 유의사항</h5>
-                <ul class="mb-0">
-                    <li>공연과 관련 없는 질문, 광고, 욕설, 비방, 개인정보 노출 게시글은 삭제될 수 있습니다.</li>
-                    <li>개인적인 문의사항은 고객센터로 연락 부탁드립니다.</li>
-                    <li>답변은 평균 1~2일 이내 등록됩니다.</li>
-                </ul>
+                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                            <button class="page-link" @click="loadReviews(currentPage + 1)">다음</button>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
 
-        <BookingModal />
 
     </div>
+    <div class="container-lg" v-if="isTab(tabs[3].name)">
+        <h4 class="mb-4">Q&A</h4>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">질문 작성하기</h5>
+                <form>
+                    <div class="form-group">
+                        <label for="qnaWriter">작성자</label>
+                        <input type="text" class="form-control" id="qnaWriter" placeholder="이름을 입력하세요">
+                    </div>
+                    <div class="form-group">
+                        <label for="qnaQuestion">질문 내용</label>
+                        <textarea class="form-control" id="qnaQuestion" rows="4"
+                            placeholder="궁금한 내용을 작성해 주세요"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">등록하기</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h5>등록된 질문 (2)</h5>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <strong>김문의</strong> <small class="text-muted">2024-06-24</small>
+                    <p>공연 당일 주차 가능할까요?</p>
+                    <div class="bg-light p-2 mt-2">
+                        <strong>답변:</strong> 주차장은 공연장 지하에 마련되어 있으며 선착순 이용 가능합니다.
+                    </div>
+                </li>
+                <li class="list-group-item">
+                    <strong>이관람</strong> <small class="text-muted">2024-06-23</small>
+                    <p>아이와 함께 관람해도 괜찮나요?</p>
+                    <div class="bg-light p-2 mt-2">
+                        <strong>답변:</strong> 본 공연은 만 7세 이상 관람 가능합니다.
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="alert alert-warning" role="alert">
+            <h5 class="alert-heading">Q&A 작성 유의사항</h5>
+            <ul class="mb-0">
+                <li>공연과 관련 없는 질문, 광고, 욕설, 비방, 개인정보 노출 게시글은 삭제될 수 있습니다.</li>
+                <li>개인적인 문의사항은 고객센터로 연락 부탁드립니다.</li>
+                <li>답변은 평균 1~2일 이내 등록됩니다.</li>
+            </ul>
+        </div>
+    </div>
+
+    <BookingModal />
 </template>
 
 <style scoped></style>
