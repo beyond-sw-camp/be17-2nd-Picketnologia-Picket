@@ -17,7 +17,7 @@ const toggleDropdown = () => {
     <div class="dropdown" v-else>
         <button class="btn dropdown-toggle border-0 btn-lg fw-bold" type="button" data-bs-toggle="dropdown"
             aria-expanded="false">
-            test
+            {{ userStore.nickname }}
         </button>
         <ul class="dropdown-menu">
             <li>
@@ -27,7 +27,7 @@ const toggleDropdown = () => {
                 <RouterLink class="link-underline-light link-dark dropdown-item" to="/seller">판매자 관리 페이지</RouterLink>
             </li>
             <li>
-                <button class="link-underline-light link-dark dropdown-item" @click="userStore.logout">로그아웃</button>
+                <button class="link-underline-light link-dark dropdown-item" @click="userStore.logout()">로그아웃</button>
             </li>
         </ul>
     </div>
