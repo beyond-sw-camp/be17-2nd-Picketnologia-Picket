@@ -19,5 +19,5 @@ export const useUserStore = defineStore('user', () => {
     nickname.value = ''
   }
 
-  return { idx, isLogin, login, logout }
+  return { idx, isLogin, login, logout, nickname }
 })

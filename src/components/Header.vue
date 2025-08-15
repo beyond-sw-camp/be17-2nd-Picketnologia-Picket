@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import LoginNavBar from '@/components/LoginNavBar.vue'
 
 const tabs = ['뮤지컬', '콘서트', '전시/행사', '아동/가족', '연극']
 const activeTab = ref('뮤지컬')
@@ -31,9 +32,7 @@ const props = defineProps({
           </form>
         </div>
         <div class="d-flex gap-2 align-items-center">
-          <RouterLink class="link-underline-light link-dark" to="/login">로그인</RouterLink>
-          <RouterLink class="link-underline-light link-dark" to="/mypage">마이페이지</RouterLink>
-          <RouterLink class="link-underline-light link-dark" to="/seller">판매자 관리 페이지</RouterLink>
+          <LoginNavBar />
         </div>
       </div>
     </nav>
