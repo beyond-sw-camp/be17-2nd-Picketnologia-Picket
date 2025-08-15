@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/useUserStore'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -6,6 +8,9 @@ const router = createRouter({
       path: '/',
       name: 'main',
       component: () => import('@/views/Main.vue'),
+      meta: {
+        authRequired: false,
+      },
       children: [
         {
           path: '',
@@ -23,16 +28,25 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('@/views/auth/LoginView.vue'),
+      meta: {
+        authRequired: false,
+      },
     },
     {
       path: '/email-find',
       name: 'email-find',
       component: () => import('@/views/auth/EmailFindView.vue'),
+      meta: {
+        authRequired: false,
+      },
     },
     {
       path: '/password-reset',
       name: 'password-reset',
       component: () => import('@/views/auth/PasswordFindView.vue'),
+      meta: {
+        authRequired: false,
+      },
     },
     // {
     //   path: '/my-page',
@@ -43,29 +57,44 @@ const router = createRouter({
       path: '/mypage1',
       name: 'my-page1',
       component: () => import('@/views/seller/mypage1.vue'),
+      meta: {
+        authRequired: true,
+      },
     },
 
     {
       path: '/mypage2',
       name: 'my-page2',
       component: () => import('@/views/seller/mypage2.vue'),
+      meta: {
+        authRequired: true,
+      },
     },
 
     {
       path: '/mypage3',
       name: 'my-page3',
       component: () => import('@/views/seller/mypage3.vue'),
+      meta: {
+        authRequired: true,
+      },
     },
 
     {
       path: '/myaccount',
       name: 'myaccount',
       component: () => import('@/views/seller/myaccount.vue'),
+      meta: {
+        authRequired: true,
+      },
     },
     {
       path: '/sign-up',
       name: 'signup',
       component: () => import('@/views/auth/SignupView.vue'),
+      meta: {
+        authRequired: false,
+      },
     },
 
     // {
@@ -102,6 +131,10 @@ const router = createRouter({
       path: '/seller',
       name: 'seller',
       component: () => import('@/views/seller/Main.vue'),
+      meta: {
+        authRequired: true,
+        requiredRole: 'seller',
+      },
       children: [
         {
           path: '',
@@ -146,6 +179,21 @@ const router = createRouter({
       component: () => import('@/views/PaymentResultView.vue'),
     },
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore()
+
+  const authRequired = to.matched.some((record) => record.meta.authRequired)
+  const isLogin = userStore.isLogin
+
+  // 권한이 필요한데 로그인이 되어 있지 않으면 로그인 페이지로 이동
+  if (authRequired && !isLogin) {
+    next('/login')
+  } else {
+    // 그렇지 않으면 다음 페이지로 이동
+    next()
+  }
 })
 
 export default router
