@@ -48,45 +48,36 @@ const router = createRouter({
         authRequired: false,
       },
     },
-    // {
-    //   path: '/my-page',
-    //   name: 'mypage',
-    //   component: () => import('@/views/seller/mypage1.vue'),
-    // },
     {
-      path: '/mypage1',
-      name: 'my-page1',
-      component: () => import('@/views/seller/mypage1.vue'),
+      path: '/mypage',
+      name: 'mypageHome',
+      component: () => import('@/views/mypage/MypageMain.vue'),
+      redirect: '/mypage/reserve',
       meta: {
         authRequired: true,
       },
-    },
-
-    {
-      path: '/mypage2',
-      name: 'my-page2',
-      component: () => import('@/views/seller/mypage2.vue'),
-      meta: {
-        authRequired: true,
-      },
-    },
-
-    {
-      path: '/mypage3',
-      name: 'my-page3',
-      component: () => import('@/views/seller/mypage3.vue'),
-      meta: {
-        authRequired: true,
-      },
-    },
-
-    {
-      path: '/myaccount',
-      name: 'myaccount',
-      component: () => import('@/views/seller/myaccount.vue'),
-      meta: {
-        authRequired: true,
-      },
+      children: [
+        {
+          path: 'reserve',
+          name: 'mypage-reserve',
+          component: () => import('@/views/mypage/ReservationView.vue'),
+        },
+        {
+          path: 'refund',
+          name: 'mypage-refund',
+          component: () => import('@/views/mypage/RefundView.vue'),
+        },
+        {
+          path: 'review',
+          name: 'mypage-review',
+          component: () => import('@/views/mypage/ReviewView.vue'),
+        },
+        {
+          path: 'profile',
+          name: 'mypage-profile',
+          component: () => import('@/views/mypage/ProfileView.vue'),
+        },
+      ],
     },
     {
       path: '/sign-up',
@@ -96,37 +87,6 @@ const router = createRouter({
         authRequired: false,
       },
     },
-
-    // {
-    //   path: '/bookingpage',
-    //   name: 'bookingpage',
-    //   component: () => import('@/views/BookingPage.vue'),
-    // },
-
-    {
-      path: '/mypage1',
-      name: 'mypage',
-      component: () => import('@/views/mypage1.vue'),
-    },
-
-    {
-      path: '/mypage2',
-      name: 'mypage2',
-      component: () => import('@/views/mypage2.vue'),
-    },
-
-    {
-      path: '/mypage3',
-      name: 'mypage3',
-      component: () => import('@/views/mypage3.vue'),
-    },
-
-    {
-      path: '/myaccount',
-      name: 'myaccount',
-      component: () => import('@/views/myaccount.vue'),
-    },
-
     {
       path: '/seller',
       name: 'seller',
