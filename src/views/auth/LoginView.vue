@@ -15,7 +15,7 @@ const loginUser = reactive({
 const login = async () => {
     const response = await api.memberLogin(loginUser);
     if (response.success) {
-        userStore.login(response.data);
+        userStore.login(response.results);
         router.push('/');
     } else {
         alert('로그인 실패: ' + response.message);
