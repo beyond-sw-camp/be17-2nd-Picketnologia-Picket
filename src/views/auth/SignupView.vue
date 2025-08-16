@@ -2,7 +2,8 @@
 import { onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useRouter } from 'vue-router';
-import api from '@/api/member';
+import memberApi from '@/api/member';
+import authApi from '@/api/auth';
 
 import Header from '@/components/auth/header.vue';
 
@@ -69,7 +70,7 @@ const sendVerificationCode = async () => {
         return;
     }
 
-    const response = await api.requestSendVerifyCode(req);
+    const response = await authApi.sendAuthCodeToEmail(req);
     if (response.success) {
         alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
         toggleStates.isSendCode = true;
@@ -98,7 +99,7 @@ const requestVerificateCode = async () => {
         return;
     }
 
-    const response = await api.verifyEmailCode(req);
+    const response = await authApi.verifyEmailCode(req);
     if (response.success) {
         toggleStates.isVerified = true;
         alert('인증이 완료되었습니다.');
@@ -155,7 +156,7 @@ const requestSignup = async () => {
         businessAddress: sellerFields.businessAddress.trim(),
     };
 
-    const response = await api.requestSignup(req);
+    const response = await memberApi.requestSignup(req);
     if (response.success) {
         alert('회원가입이 완료되었습니다.');
         router.push('/login');
@@ -168,7 +169,7 @@ const requestSignup = async () => {
  * 회원 가입 뷰가 onMounted될 때 사용자 유형과 성별 정보를 가져온다.
  */
 onMounted(async () => {
-    const response = await api.getSignupViewInfo();
+    const response = await memberApi.getSignupViewInfo();
     if (response.success) {
         userType.value = response.results.userTypes;
         gender.value = response.results.genders;

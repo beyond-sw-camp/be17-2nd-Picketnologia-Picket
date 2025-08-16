@@ -33,19 +33,27 @@ const router = createRouter({
       },
     },
     {
-      path: '/email-find',
-      name: 'email-find',
+      path: '/find-email',
+      name: 'find-email',
       component: () => import('@/views/auth/EmailFindView.vue'),
       meta: {
         authRequired: false,
       },
     },
     {
-      path: '/password-reset',
-      name: 'password-reset',
+      path: '/find-password',
+      name: 'find-password',
       component: () => import('@/views/auth/PasswordFindView.vue'),
       meta: {
         authRequired: false,
+      },
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('@/views/auth/PasswordResetView.vue'),
+      meta: {
+        requireToken: true,
       },
     },
     {
@@ -145,15 +153,24 @@ router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
 
   const authRequired = to.matched.some((record) => record.meta.authRequired)
+  const requiresToken = to.matched.some((record) => record.meta.requireToken)
   const isLogin = userStore.isLogin
 
   // 권한이 필요한데 로그인이 되어 있지 않으면 로그인 페이지로 이동
   if (authRequired && !isLogin) {
     next('/login')
-  } else {
-    // 그렇지 않으면 다음 페이지로 이동
-    next()
   }
+
+  // 비밀번호 재설정 페이지에서는 토큰이 필요
+  if (requiresToken) {
+    const token = to.query.token
+    if (!token) {
+      next('/login')
+    }
+  }
+
+  // 그렇지 않으면 다음 페이지로 이동
+  next()
 })
 
 export default router

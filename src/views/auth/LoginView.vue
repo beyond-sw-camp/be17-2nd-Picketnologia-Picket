@@ -50,11 +50,11 @@ const login = async () => {
                                     로그인
                                 </button>
                                 <div class="text-center mt-4">
-                                    <RouterLink to="/email-find" class="text-decoration-none text-secondary small">
+                                    <RouterLink to="/find-email" class="text-decoration-none text-secondary small">
                                         아이디 찾기
                                     </RouterLink>
                                     <span class="text-secondary mx-1">|</span>
-                                    <RouterLink to="/password-reset" class="text-decoration-none text-secondary small">
+                                    <RouterLink to="/find-password" class="text-decoration-none text-secondary small">
                                         비밀번호 찾기
                                     </RouterLink>
                                     <span class="text-secondary mx-1">|</span>
