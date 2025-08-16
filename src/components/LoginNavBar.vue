@@ -1,6 +1,7 @@
 <script setup>
 import { useUserStore } from '@/stores/useUserStore';
 import { ref } from 'vue';
+import api from '@/api/member';
 
 const userStore = useUserStore();
 
@@ -8,6 +9,14 @@ const isDropdownOpen = ref(false);
 
 const toggleDropdown = () => {
     isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const logout = async () => {
+    const response = await api.logout();
+
+    if (response.success) {
+        userStore.logout();
+    }
 };
 
 </script>
@@ -27,7 +36,7 @@ const toggleDropdown = () => {
                 <RouterLink class="link-underline-light link-dark dropdown-item" to="/seller">판매자 관리 페이지</RouterLink>
             </li>
             <li>
-                <button class="link-underline-light link-dark dropdown-item" @click="userStore.logout()">로그아웃</button>
+                <button class="link-underline-light link-dark dropdown-item" @click="logout">로그아웃</button>
             </li>
         </ul>
     </div>
