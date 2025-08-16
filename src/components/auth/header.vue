@@ -13,6 +13,10 @@ const headerData = ref(
             title: "계정 찾기",
             subtitle: "회원 가입시 입력하신 전화번호와 이름을 입력하시면,<br>해당 아이디를 찾아드립니다."
         },
+        emailFindResult: {
+            title: "이메일 조회 결과",
+            subtitle: "회원님이 가입하신 이메일은 다음과 같습니다."
+        },
         password: {
             title: "비밀번호 찾기",
             subtitle: "가입하신 이메일 주소를 입력하시고 인증을 완료 하시면, <br>비밀번호 재설정이 가능합니다."
