@@ -16,6 +16,22 @@ const memberLogin = async (req) => {
   return data
 }
 
+const logout = async (req) => {
+  let data = {}
+  const url = '/api/logout'
+
+  await api
+    .post(url, req)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.data
+    })
+
+  return data
+}
+
 const findEmail = async (req) => {
   let data = {}
   // let url = '/api/auth/email/code'
@@ -166,6 +182,7 @@ const getSignupViewInfo = async () => {
 
 export default {
   memberLogin,
+  logout,
   findEmail,
   sendCode,
   confirmPasswordReset,
