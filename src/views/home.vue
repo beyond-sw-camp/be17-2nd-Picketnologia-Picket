@@ -85,25 +85,20 @@ onMounted(async () => {
 
 <template>
     <!-- carousel start -->
-    <div id="carouselExampleAutoplaying" class="carousel slide container-lg" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="https://picsum.photos/450/600" class="d-block w-100" style="height: 600px;">
+    <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class=" carousel-inner">
+            <div class=" carousel-item active">
+                <img src="@/assets/image/slide01.png" class="d-block w-100" style="height: 600px;">
             </div>
             <div class="carousel-item">
-                <img src="https://picsum.photos/450/601" class="d-block w-100" style="height: 600px;">
-            </div>
-            <div class="carousel-item">
-                <img src="https://picsum.photos/450/602" class="d-block w-100" style="height: 600px;">
+                <img src="@/assets/image/slide02.png" class="d-block w-100" style="height: 600px;">
             </div>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying"
-            data-bs-slide="prev">
+        <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Previous</span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying"
-            data-bs-slide="next">
+        <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
             <span class="visually-hidden">Next</span>
         </button>

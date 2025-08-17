@@ -22,7 +22,13 @@ const logout = async () => {
 </script>
 
 <template>
-    <RouterLink class="link-underline-light link-dark" to="/login" v-if="!userStore.isLogin">로그인</RouterLink>
+
+    <RouterLink class="link-underline-light link-dark d-flex" to="/login" v-if="!userStore.isLogin">
+        <spann>
+            로그인
+        </spann>
+        <img src="@/assets/icons/login.png" alt="login icon"></img>
+    </RouterLink>
     <div class="dropdown" v-else>
         <button class="btn dropdown-toggle border-0 btn-lg fw-bold" type="button" data-bs-toggle="dropdown"
             aria-expanded="false">
@@ -30,13 +36,24 @@ const logout = async () => {
         </button>
         <ul class="dropdown-menu">
             <li>
-                <RouterLink class="link-underline-light link-dark dropdown-item" to="/mypage">마이페이지</RouterLink>
+                <RouterLink class="link-underline-light link-dark dropdown-item d-flex gap-1" to="/mypage">
+                    <img src="@/assets/icons/account.png" alt="mypage icon"></img>
+                    <span>마이페이지</span>
+                </RouterLink>
             </li>
             <li>
-                <RouterLink class="link-underline-light link-dark dropdown-item" to="/seller">판매자 관리 페이지</RouterLink>
+                <RouterLink class="link-underline-light link-dark dropdown-item d-flex gap-1" to="/seller">
+                    <img src="@/assets/icons/store.png" alt="seller icon"></img>
+                    <span>판매자 관리 페이지</span>
+                </RouterLink>
             </li>
             <li>
-                <button class="link-underline-light link-dark dropdown-item" @click="logout">로그아웃</button>
+                <button class="link-underline-light link-dark dropdown-item d-flex gap-1" @click="logout">
+                    <img src="@/assets/icons/logout.png" alt="logout icon"></img>
+                    <span>
+                        로그아웃
+                    </span>
+                </button>
             </li>
         </ul>
     </div>
