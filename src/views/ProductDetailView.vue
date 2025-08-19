@@ -43,17 +43,21 @@ onMounted(async () => {
 
     console.log(response)
     product.value = response.dbs.db
+
+
 })
 
 
 const reviewForm = reactive({
     name: '',
     rating: 0,
-    comment: ''
+    comment: '',
+    productId: 0
 });
 
 const onSubmit = async () => {
     try {
+        reviewForm.productId = route.params.id;
         const data = await review.register(reviewForm);
 
         if (data.success !== false) {
@@ -405,6 +409,7 @@ const formatDate = (dateString) => {
                                     <span v-for="i in 5" :key="i">
                                         {{ i <= totalRating ? '★' : '☆' }} </span>
                                 </div>
+
                                 <div class="h4 m-0 p-0 text-dark">{{ totalRating.toFixed(1) }}</div>
                             </div>
                         </h5>
