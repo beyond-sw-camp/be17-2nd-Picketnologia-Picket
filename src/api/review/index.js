@@ -2,7 +2,7 @@ import api from "@/plugins/axiosInterceptor";
 
 const register = async (req) => {
     let data = {};
-    let url = 'http://localhost:8080/products/register';
+    let url = 'http://localhost:8080/reviews/register';
 
     await api.post(url, req)
         .then((res) => {
@@ -18,7 +18,7 @@ const register = async (req) => {
 const getReviews = async (page = 1, size = 5) => {
     try {
         const backendPage = page - 1;
-        const response = await api.get(`http://localhost:8080/products/listPaging?page=${backendPage}&size=${size}`);
+        const response = await api.get(`http://localhost:8080/reviews/listPaging?page=${backendPage}&size=${size}`);
 
         return response.data.results;
     } catch (error) {

@@ -33,4 +33,5 @@ const getProductDetail = async (productId) => {
   return data
 }
 
+
 export default { getProducts, getProductDetail }
