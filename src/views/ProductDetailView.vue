@@ -72,6 +72,7 @@ const onSubmit = async () => {
 }
 
 
+
 const reviews = ref([]);
 const totalPages = ref(0);
 const currentPage = ref(1);
@@ -452,9 +453,9 @@ const formatDate = (dateString) => {
                 </nav>
             </div>
         </div>
-
-
     </div>
+
+
     <div class="container-lg" v-if="isTab(tabs[3].name)">
         <h4 class="mb-4">Q&A</h4>
 
