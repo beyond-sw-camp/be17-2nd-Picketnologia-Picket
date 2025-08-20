@@ -22,6 +22,11 @@ const router = createRouter({
           name: 'ProductDetail',
           component: () => import('@/views/ProductDetailView.vue'),
         },
+        {
+          path: '/contents/genre/:code',
+          name: 'ContentsGenre',
+          component: () => import('@/views/contents/ContentsGenreView.vue'),
+        },
       ],
     },
     {
