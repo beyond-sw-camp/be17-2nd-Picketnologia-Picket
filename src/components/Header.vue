@@ -1,13 +1,37 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import LoginNavBar from '@/components/LoginNavBar.vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 
-const tabs = ['뮤지컬', '콘서트', '전시/행사', '아동/가족', '연극']
-const activeTab = ref('뮤지컬')
+import genreApi from '@/api/genre'
 
-const setActiveTab = (tab) => {
-  activeTab.value = tab
+const route = useRoute()
+
+const genres = ref([
+  {
+    name: '뮤지컬',
+    code: 'musical'
+  },
+  {
+    name: '콘서트',
+    code: 'concert'
+  },
+  {
+    name: '전시/행사',
+    code: 'exhibition'
+  },
+  {
+    name: '아동/가족',
+    code: 'family'
+  },
+  {
+    name: '연극',
+    code: 'play'
+  }
+])
+
+const setActiveTab = (genre) => {
+  return genre.code === route.params.code
 }
 
 const props = defineProps({
@@ -16,6 +40,14 @@ const props = defineProps({
     default: true
   }
 })
+
+onMounted(async () => {
+  const response = await genreApi.getGenres()
+  if (response.success) {
+    genres.value = response.data
+  }
+})
+
 
 </script>
 
@@ -41,18 +73,14 @@ const props = defineProps({
 
   <!-- tab start -->
   <ul class="nav fs-6 fw-medium border p-2 bg-light justify-content-center " v-if="props.isGenre">
-    <li class="nav-item" v-for="tab in tabs" :key="tab">
-      <RouterLink class="nav-link text-black" :class="{ 'fw-bold': setActiveTab(tab) }"
-        @click.prevent="setActiveTab(tab)">
-        {{ tab }}</RouterLink>
+    <li class="nav-item" v-for="genre in genres" :key="genre.code">
+      <RouterLink class="nav-link " :class="[setActiveTab(genre) ? 'text-primary fw-bold' : 'text-black']"
+        :to="`/contents/genre/${genre.code}`">
+        {{ genre.name }}
+      </RouterLink>
     </li>
   </ul>
   <!-- tab end -->
 </template>
 
-<style scoped>
-.nav-link.active {
-  font-weight: bold;
-  border-bottom: 2px solid black;
-}
-</style>
+<style scoped></style>
