@@ -111,13 +111,15 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="d-flex flex-column gap-5 container-lg">
+    <div class="d-flex flex-column gap-5 container-lg pt-4">
         <!-- 카드 -->
 
-        <!-- 지금 할인 중 -->
+        <!-- 할인 -->
         <section class="d-flex flex-column gap-2">
-            <h3 class="fs-2 align-self-center fw-semibold">지금 할인 중</h3>
-
+            <h3 class="fs-2 align-self-center fw-semibold">지금 할인중!</h3>
+            <div class="text-center fs-2">
+                <p class="text-body-secondary">준비 중 입니다...</p>
+            </div>
         </section>
 
         <!-- 오픈 예정 -->
