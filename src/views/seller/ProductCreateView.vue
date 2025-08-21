@@ -53,15 +53,17 @@ onMounted(() => {
         }
     })
 })
-
+// 포스터 이미지 파일 선택 시, posterFile 변수에 첫번째 파일 저장
 const handlePosterFileChange = (event) => {
     posterFile.value = event.target.files[0]
 }
 
+// 상세 이미지 선택 시, 모든 파일 detailFiles 변수에 저장
 const handleDetailFilesChange = (event) => {
     detailFiles.value = event.target.files
 }
 
+// 회차 추가
 const addRound = () => {
     rounds.value.push({
         date: '',
@@ -69,10 +71,12 @@ const addRound = () => {
     })
 }
 
+// 특정 회차 삭제
 const removeRound = (index) => {
     rounds.value.splice(index, 1)
 }
 
+// 등록하기 버튼 실행, quill 텍스트 description에 저장
 const submitForm = async () => {
     form.value.description = quill.root.innerText;
 
@@ -82,6 +86,7 @@ const submitForm = async () => {
         form.value.sessionTime = parseInt(rounds.value[0].time.substring(0, 2)) // 시간만 정수로 추출
     }
 
+    // formData 객체 생성
     const formData = new FormData();
     
     // ProductRegister DTO에 해당하는 JSON 데이터를 Blob으로 만들어 추가

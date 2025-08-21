@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import Stomp from 'stompjs'
 
 const router = useRouter()
-
 
 const step = ref(1)
 const today = new Date()
@@ -18,9 +18,9 @@ const calendarDates = ref(
       fullDate,
       isAvailable: availableDates.includes(fullDate),
       isSelected: false,
-      isToday: fullDate === '2025-07-09'
+      isToday: fullDate === '2025-07-09',
     }
-  })
+  }),
 )
 
 const selectedDate = ref('')
@@ -28,7 +28,7 @@ const selectedTime = ref('')
 
 function selectDate(date) {
   if (!date.isAvailable) return
-  calendarDates.value.forEach(d => d.isSelected = false)
+  calendarDates.value.forEach((d) => (d.isSelected = false))
   date.isSelected = true
   selectedDate.value = date.fullDate
   selectedTime.value = ''
@@ -39,7 +39,7 @@ const timeslotData = {
   '2025-07-09': [{ time: '16:00' }],
   '2025-07-10': [{ time: '18:00' }],
   '2025-07-17': [{ time: '15:00' }, { time: '20:00' }],
-  '2025-07-18': [{ time: '17:00' }]
+  '2025-07-18': [{ time: '17:00' }],
 }
 
 const currentDayTimeslots = computed(() => timeslotData[selectedDate.value] || [])
@@ -52,23 +52,63 @@ const seats = Array.from({ length: 100 }, (_, i) => {
   return {
     name: `A${i + 1}`,
     type,
-    price: type === 'VIP' ? 88000 : type === 'R' ? 66000 : 44000
+    price: type === 'VIP' ? 88000 : type === 'R' ? 66000 : 44000,
   }
 })
 
+const socket = ref(null)
+
+const route = useRoute()
+const eventIdx = route.params.id
+
+const connectWebSocket = () => {
+  const ws = new WebSocket('ws://localhost:8080/websocket')
+  const client = Stomp.over(ws)
+  socket.value = client
+  client.connect(
+    {},
+    (frame) => {
+      client.subscribe(`/product/${eventIdx}`, (msg) => {
+        const receivedSeat = msg.body
+
+        // 중복 방지하고 disabledSeats에 추가
+        if (!disabledSeats.value.includes(receivedSeat)) {
+          disabledSeats.value.push(receivedSeat)
+        }
+
+        console.log('음영 처리 좌석 추가됨:', receivedSeat)
+      })
+    },
+    (err) => {},
+  )
+}
+
 const selectedSeats = ref([])
 
+// 음영 처리할 좌석 목록
+const disabledSeats = ref([])
+
 function toggleSeat(seat) {
-  const idx = selectedSeats.value.findIndex(s => s.name === seat.name)
-  if (idx >= 0) selectedSeats.value.splice(idx, 1)
-  else selectedSeats.value.push(seat)
+  // 먼저 음영 처리된 좌석인지 확인 후 무시
+  if (disabledSeats.value.includes(seat.name)) {
+    return
+  }
+
+  const idx = selectedSeats.value.findIndex((s) => s.name === seat.name)
+  if (idx >= 0) {
+    // 취소했을때도 메세지 전달되어야함
+    selectedSeats.value.splice(idx, 1)
+  } else {
+    selectedSeats.value.push(seat)
+    // 공연번호로 좌석번호를 서버로 전송하는 메소드(by. 웹소켓)
+    console.log('메시지 보내기')
+    socket.value.send(`/order/event/${eventIdx}`, {}, seat.name)
+  }
 }
 
 const deliveryMethod = ref('')
 
-const totalPrice = computed(() =>
-  selectedSeats.value.reduce((sum, s) => sum + s.price, 0)
-)
+const totalPrice = computed(() => selectedSeats.value.reduce((sum, s) => sum + s.price, 0))
 
 function nextStep() {
   if (step.value === 1) {
@@ -95,38 +135,65 @@ function prevStep() {
 
 <template>
   <!-- 예매하기 버튼 -->
-  <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#bookingModal">
+  <button
+    @click="connectWebSocket"
+    type="button"
+    class="btn btn-primary btn-lg"
+    data-bs-toggle="modal"
+    data-bs-target="#bookingModal"
+  >
     예매하기
   </button>
 
   <!-- 모달창 -->
-  <div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+  <div
+    class="modal fade"
+    id="bookingModal"
+    tabindex="-1"
+    aria-labelledby="bookingModalLabel"
+    aria-hidden="true"
+  >
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
-
         <div class="modal-header">
           <h5 class="modal-title" id="bookingModalLabel">티켓 예매</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="닫기"
+          ></button>
         </div>
 
         <div class="modal-body">
           <!-- 단계 표시 -->
           <div class="steps mb-3">
-            <div :class="['step', { active: step === 1 }]" @click="step = 1">Step 1<br>날짜 및 회차</div>
-            <div :class="['step', { active: step === 2 }]" @click="step = 2">Step 2<br>좌석 선택</div>
-            <div :class="['step', { active: step === 3 }]" @click="step = 3">Step 3<br>수령 방법</div>
+            <div :class="['step', { active: step === 1 }]" @click="step = 1">
+              Step 1<br />날짜 및 회차
+            </div>
+            <div :class="['step', { active: step === 2 }]" @click="step = 2">
+              Step 2<br />좌석 선택
+            </div>
+            <div :class="['step', { active: step === 3 }]" @click="step = 3">
+              Step 3<br />수령 방법
+            </div>
           </div>
 
           <!-- Step 1 -->
           <div v-show="step === 1" class="step-content">
             <h4>예매일 선택</h4>
             <div class="calendar-grid">
-              <div v-for="date in calendarDates" :key="date.fullDate" :class="[
-                'day',
-                date.isAvailable ? 'available' : 'disabled',
-                date.isSelected ? 'selected' : '',
-                date.isToday ? 'today' : ''
-              ]" @click="selectDate(date)">
+              <div
+                v-for="date in calendarDates"
+                :key="date.fullDate"
+                :class="[
+                  'day',
+                  date.isAvailable ? 'available' : 'disabled',
+                  date.isSelected ? 'selected' : '',
+                  date.isToday ? 'today' : '',
+                ]"
+                @click="selectDate(date)"
+              >
                 {{ date.day }}
               </div>
             </div>
@@ -146,23 +213,37 @@ function prevStep() {
             <!-- 좌석 구분 및 가격 안내 -->
             <div class="seat-legend mb-3 d-flex gap-3">
               <div class="legend-item vip">
-                <div class="color-box vip"></div> VIP석 - 88,000원
+                <div class="color-box vip"></div>
+                VIP석 - 88,000원
               </div>
               <div class="legend-item r">
-                <div class="color-box r"></div> R석 - 66,000원
+                <div class="color-box r"></div>
+                R석 - 66,000원
               </div>
               <div class="legend-item s">
-                <div class="color-box s"></div> S석 - 44,000원
+                <div class="color-box s"></div>
+                S석 - 44,000원
               </div>
               <div class="legend-item a">
-                <div class="color-box a"></div> A석 - 44,000원
+                <div class="color-box a"></div>
+                A석 - 44,000원
               </div>
             </div>
 
             <div class="seat-grid">
-              <div v-for="seat in seats" :key="seat.name"
-                :class="['seat', seat.type.toLowerCase(), { selected: selectedSeats.includes(seat) }]"
-                @click="toggleSeat(seat)">
+              <div
+                v-for="seat in seats"
+                :key="seat.name"
+                :class="[
+                  'seat',
+                  seat.type.toLowerCase(),
+                  {
+                    selected: selectedSeats.includes(seat),
+                    disabled: disabledSeats.includes(seat.name),
+                  },
+                ]"
+                @click="toggleSeat(seat)"
+              >
                 {{ seat.name }}
               </div>
             </div>
@@ -177,9 +258,9 @@ function prevStep() {
             <label class="ms-3">
               <input type="radio" v-model="deliveryMethod" value="QR 코드" /> QR 코드
             </label>
-            <p><input type="text" class="form-control" placeholder="이름"></p>
-            <p><input type="text" class="form-control" placeholder="긴급 연락처"></p>
-            <p><input type="text" class="form-control" placeholder="e-mail"></p>
+            <p><input type="text" class="form-control" placeholder="이름" /></p>
+            <p><input type="text" class="form-control" placeholder="긴급 연락처" /></p>
+            <p><input type="text" class="form-control" placeholder="e-mail" /></p>
           </div>
 
           <!-- 예매 요약 -->
@@ -187,7 +268,10 @@ function prevStep() {
             <h5>예매 요약</h5>
             <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
             <p><strong>회차:</strong> {{ selectedTime || '선택 안 됨' }}</p>
-            <p><strong>좌석:</strong> {{selectedSeats.map(s => s.name).join(', ') || '선택 안 됨'}}</p>
+            <p>
+              <strong>좌석:</strong>
+              {{ selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨' }}
+            </p>
             <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p>
             <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
           </div>
@@ -195,7 +279,9 @@ function prevStep() {
 
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="prevStep" :disabled="step === 1">이전</button>
-          <button class="btn btn-primary" @click="nextStep">{{ step === 3 ? '결제하기' : '다음' }}</button>
+          <button class="btn btn-primary" @click="nextStep">
+            {{ step === 3 ? '결제하기' : '다음' }}
+          </button>
         </div>
       </div>
     </div>
@@ -346,5 +432,13 @@ function prevStep() {
 
 .summary p {
   margin: 0.2rem 0;
+}
+
+.seat.disabled {
+  background-color: #666;
+  color: #666;
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 </style>
