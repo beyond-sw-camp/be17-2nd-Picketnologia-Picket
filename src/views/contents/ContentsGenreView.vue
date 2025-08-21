@@ -129,7 +129,7 @@ onMounted(async () => {
                         <div class="card h-100 border-0">
                             <img :src="product.posterUrl" class="card-img-top rounded-3"
                                 style="width: 100%; height: 300px;">
-                            <div class="card-body d-flex flex-column gap-1">
+                            <div class="card-body d-flex flex-column gap-1 px-1">
                                 <h5 class="card-title fw-bold">{{ product.name }}</h5>
                                 <h6 class="card-subtitle fw-bold text-primary">
                                     {{ product.openDate }}
@@ -139,7 +139,7 @@ onMounted(async () => {
                     </RouterLink>
                 </div>
             </div>
-            <RouterLink to="/products/upcoming"
+            <RouterLink :to="`/contents/genre/${route.params.code}`"
                 class="text-decoration-none text-dark text-center border-2 border rounded-3 p-3 fw-semibold">
                 <span>오픈 예정 공연 전체보기</span>
             </RouterLink>
@@ -169,7 +169,7 @@ onMounted(async () => {
                         <div class="card h-100 border-0">
                             <img :src="product.posterUrl" class="card-img-top rounded-3"
                                 style="width: 100%; height: 300px;">
-                            <div class="card-body d-flex flex-column justify-content-between gap-1">
+                            <div class="card-body d-flex flex-column justify-content-between gap-1 px-1">
                                 <h5 class="card-title fw-bold">{{ product.name }}</h5>
                                 <h6 class="card-subtitle">{{ product.venueName }}</h6>
                                 <p class="card-text text-body-tertiary">{{ product.startDate }} ~ {{ product.endDate }}
