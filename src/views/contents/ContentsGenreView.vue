@@ -47,6 +47,15 @@ const products = ref([
     }
 ])
 
+const upcomingPerformances = ref([
+    {
+        idx: 1,
+        name: '지킬 앤 하이드',
+        posterUrl: '',
+        openDate: '2025.6.15',
+    }
+])
+
 watch(
     () => fetchData.selectedSorted,
     async (newValue) => {
@@ -74,87 +83,107 @@ watch(
     }
 )
 
+const getContents = async (req) => {
+    const response = await contentsApi.getContentsByGenre(req)
+    if (response.success) {
+        products.value = response.results.products
+        upcomingPerformances.value = response.results.upcomingPerformances
+    } else {
+        products.value = []
+    }
+}
+
 watch(() => route.params.code, async (newValue) => {
     const req = {
         genre: newValue,
     }
-    const response = await contentsApi.getContentsByGenre(req)
-    if (response.success) {
-        products.value = response.results.products
-    } else {
-        products.value = []
-    }
+
+    await getContents(req)
 })
 
 onMounted(async () => {
     const req = {
         genre: route.params.code,
     }
-    const response = await contentsApi.getContentsByGenre(req)
-    if (response.success) {
-        products.value = response.results.products
-    } else {
-        products.value = []
-    }
+
+    await getContents(req)
 })
 </script>
 
 <template>
-    <div class="container-lg d-flex flex-column gap-3 text-center">
-        <div>
-        </div>
-        <div>
-            <h1>지금 할인 중</h1>
-        </div>
-        <div>
-            <h1>오픈 예정</h1>
-        </div>
+    <div class="d-flex flex-column gap-5 container-lg">
+        <!-- 카드 -->
 
+        <!-- 지금 할인 중 -->
+        <section class="d-flex flex-column gap-2">
+            <h3 class="fs-2 align-self-center fw-semibold">지금 할인 중</h3>
+
+        </section>
+
+        <!-- 오픈 예정 -->
+        <section class="d-flex flex-column gap-2 ">
+            <h3 class="fs-2 align-self-center fw-semibold">오픈 예정</h3>
+            <div class="row row-cols-5">
+                <div class=" col mb-4" v-for="product, index in upcomingPerformances" :key="index">
+                    <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
+                        <div class="card h-100 border-0">
+                            <img :src="product.posterUrl" class="card-img-top rounded-3"
+                                style="width: 100%; height: 300px;">
+                            <div class="card-body d-flex flex-column gap-1">
+                                <h5 class="card-title fw-bold">{{ product.name }}</h5>
+                                <h6 class="card-subtitle fw-bold text-primary">
+                                    {{ product.openDate }}
+                                </h6>
+                            </div>
+                        </div>
+                    </RouterLink>
+                </div>
+            </div>
+            <RouterLink to="/products/upcoming"
+                class="text-decoration-none text-dark text-center border-2 border rounded-3 p-3 fw-semibold">
+                <span>오픈 예정 공연 전체보기</span>
+            </RouterLink>
+        </section>
+
+        <!-- 둘러보기 -->
+        <section class="d-flex flex-column gap-2 ">
+            <h3 class="fs-2 align-self-center fw-semibold">공연 둘러보기</h3>
+            <div v-if="products.length === 0" class="text-center h1">
+                <p class="text-body-secondary">해당하는 공연이 없습니다.</p>
+            </div>
+            <div class="d-flex gap-2 sticky-top bg-white p-2" style="top: 70px;">
+                <select class="form-select w-auto" v-model="fetchData.selectedLocal">
+                    <option v-for="option in regionOptions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </option>
+                </select>
+                <select class="form-select w-auto" v-model="fetchData.selectedSorted">
+                    <option v-for="option in sortedOtpions" :key="option.value" :value="option.value">
+                        {{ option.label }}
+                    </option>
+                </select>
+            </div>
+            <div class="row row-cols-5">
+                <div class=" col mb-4" v-for="product, index in products">
+                    <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
+                        <div class="card h-100 border-0">
+                            <img :src="product.posterUrl" class="card-img-top rounded-3"
+                                style="width: 100%; height: 300px;">
+                            <div class="card-body d-flex flex-column justify-content-between gap-1">
+                                <h5 class="card-title fw-bold">{{ product.name }}</h5>
+                                <h6 class="card-subtitle">{{ product.venueName }}</h6>
+                                <p class="card-text text-body-tertiary">{{ product.startDate }} ~ {{ product.endDate }}
+                                </p>
+                            </div>
+                        </div>
+                    </RouterLink>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- 카드 -->
 
-    <!-- 지금 할인 중 -->
 
-    <!-- 오픈 예정 -->
-
-    <!-- 둘러보기 -->
-    <section class="d-flex flex-column gap-2 container-lg">
-        <h3 class="fs-2 align-self-center fw-semibold">공연 둘러보기</h3>
-        <div v-if="products.length === 0" class="text-center h1">
-            <p class="text-body-secondary">해당하는 공연이 없습니다.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <select class="form-select w-auto" v-model="fetchData.selectedLocal">
-                <option v-for="option in regionOptions" :key="option.value" :value="option.value">
-                    {{ option.label }}
-                </option>
-            </select>
-            <select class="form-select w-auto" v-model="fetchData.selectedSorted">
-                <option v-for="option in sortedOtpions" :key="option.value" :value="option.value">
-                    {{ option.label }}
-                </option>
-            </select>
-        </div>
-        <div class="row row-cols-5">
-            <div class=" col mb-4" v-for="product, index in products">
-                <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
-                    <div class="card h-100">
-                        <!-- <img :src="'https://picsum.photos/450/60' + index" class="card-img-top"> -->
-                        <img :src="product.posterUrl" class="card-img-top" style="width: 100%; height: 400px;">
-                        <div class="card-body d-flex flex-column justify-content-between">
-                            <h5 class="card-title">{{ product.title }}</h5>
-                            <h6 class="card-subtitle mb-2">{{ product.venueName }}</h6>
-                            <span class="card-text text-dark">
-                                {{ product.price }}
-                            </span>
-                            <p class="card-text text-body-secondary">{{ product.startDate }} ~ {{ product.endDate }}</p>
-                        </div>
-                    </div>
-                </RouterLink>
-            </div>
-        </div>
-    </section>
 
 </template>
 

@@ -53,7 +53,7 @@ onMounted(async () => {
 
 <template>
   <!-- header start -->
-  <div class="d-flex flex-column sticky-top bg-body border-bottom">
+  <div class="d-flex flex-column sticky-top bg-body border-bottom" style="height: 70px;">
     <nav class="navbar">
       <div class="d-flex gap-2 justify-content-between w-100 container-lg  ">
         <div class="d-flex">
