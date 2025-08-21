@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/useUserStore'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -6,6 +8,9 @@ const router = createRouter({
       path: '/',
       name: 'main',
       component: () => import('@/views/Main.vue'),
+      meta: {
+        authRequired: false,
+      },
       children: [
         {
           path: '',
@@ -17,91 +22,92 @@ const router = createRouter({
           name: 'ProductDetail',
           component: () => import('@/views/ProductDetailView.vue'),
         },
+        {
+          path: '/contents/genre/:code',
+          name: 'ContentsGenre',
+          component: () => import('@/views/contents/ContentsGenreView.vue'),
+        },
       ],
     },
     {
       path: '/login',
       name: 'login',
       component: () => import('@/views/auth/LoginView.vue'),
+      meta: {
+        authRequired: false,
+      },
     },
     {
-      path: '/email-find',
-      name: 'email-find',
+      path: '/find-email',
+      name: 'find-email',
       component: () => import('@/views/auth/EmailFindView.vue'),
+      meta: {
+        authRequired: false,
+      },
     },
     {
-      path: '/password-reset',
-      name: 'password-reset',
+      path: '/find-password',
+      name: 'find-password',
       component: () => import('@/views/auth/PasswordFindView.vue'),
+      meta: {
+        authRequired: false,
+      },
     },
-    // {
-    //   path: '/my-page',
-    //   name: 'mypage',
-    //   component: () => import('@/views/seller/mypage1.vue'),
-    // },
     {
-      path: '/mypage1',
-      name: 'my-page1',
-      component: () => import('@/views/seller/mypage1.vue'),
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('@/views/auth/PasswordResetView.vue'),
+      meta: {
+        requireToken: true,
+      },
     },
-
     {
-      path: '/mypage2',
-      name: 'my-page2',
-      component: () => import('@/views/seller/mypage2.vue'),
-    },
-
-    {
-      path: '/mypage3',
-      name: 'my-page3',
-      component: () => import('@/views/seller/mypage3.vue'),
-    },
-
-    {
-      path: '/myaccount',
-      name: 'myaccount',
-      component: () => import('@/views/seller/myaccount.vue'),
+      path: '/mypage',
+      name: 'mypageHome',
+      component: () => import('@/views/mypage/MypageMain.vue'),
+      redirect: '/mypage/reserve',
+      meta: {
+        authRequired: true,
+      },
+      children: [
+        {
+          path: 'reserve',
+          name: 'mypage-reserve',
+          component: () => import('@/views/mypage/ReservationView.vue'),
+        },
+        {
+          path: 'refund',
+          name: 'mypage-refund',
+          component: () => import('@/views/mypage/RefundView.vue'),
+        },
+        {
+          path: 'review',
+          name: 'mypage-review',
+          component: () => import('@/views/mypage/ReviewView.vue'),
+        },
+        {
+          path: 'profile',
+          name: 'mypage-profile',
+          component: () => import('@/views/mypage/ProfileView.vue'),
+        },
+      ],
     },
     {
       path: '/sign-up',
       name: 'signup',
       component: () => import('@/views/auth/SignupView.vue'),
+      meta: {
+        authRequired: false,
+      },
     },
-
-    // {
-    //   path: '/bookingpage',
-    //   name: 'bookingpage',
-    //   component: () => import('@/views/BookingPage.vue'),
-    // },
-
-    {
-      path: '/mypage1',
-      name: 'mypage',
-      component: () => import('@/views/mypage1.vue'),
-    },
-
-    {
-      path: '/mypage2',
-      name: 'mypage2',
-      component: () => import('@/views/mypage2.vue'),
-    },
-
-    {
-      path: '/mypage3',
-      name: 'mypage3',
-      component: () => import('@/views/mypage3.vue'),
-    },
-
-    {
-      path: '/myaccount',
-      name: 'myaccount',
-      component: () => import('@/views/myaccount.vue'),
-    },
-
     {
       path: '/seller',
       name: 'seller',
       component: () => import('@/views/seller/Main.vue'),
+      meta: {
+        authRequired: true,
+        requiredRole: 'seller',
+      },
       children: [
         {
           path: '',
@@ -146,6 +152,30 @@ const router = createRouter({
       component: () => import('@/views/PaymentResultView.vue'),
     },
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore()
+
+  const authRequired = to.matched.some((record) => record.meta.authRequired)
+  const requiresToken = to.matched.some((record) => record.meta.requireToken)
+  const isLogin = userStore.isLogin
+
+  // 권한이 필요한데 로그인이 되어 있지 않으면 로그인 페이지로 이동
+  if (authRequired && !isLogin) {
+    next('/login')
+  }
+
+  // 비밀번호 재설정 페이지에서는 토큰이 필요
+  if (requiresToken) {
+    const token = to.query.token
+    if (!token) {
+      next('/login')
+    }
+  }
+
+  // 그렇지 않으면 다음 페이지로 이동
+  next()
 })
 
 export default router

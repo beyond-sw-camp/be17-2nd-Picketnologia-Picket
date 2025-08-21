@@ -3,7 +3,9 @@ import { reactive } from 'vue';
 import api from '@/api/member'
 import Header from '@/components/auth/header.vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/useUserStore';
 const router = useRouter();
+const userStore = useUserStore();
 
 const loginUser = reactive({
     email: '',
@@ -13,6 +15,7 @@ const loginUser = reactive({
 const login = async () => {
     const response = await api.memberLogin(loginUser);
     if (response.success) {
+        userStore.login(response.results);
         router.push('/');
     } else {
         alert('로그인 실패: ' + response.message);
@@ -47,11 +50,11 @@ const login = async () => {
                                     로그인
                                 </button>
                                 <div class="text-center mt-4">
-                                    <RouterLink to="/email-find" class="text-decoration-none text-secondary small">
+                                    <RouterLink to="/find-email" class="text-decoration-none text-secondary small">
                                         아이디 찾기
                                     </RouterLink>
                                     <span class="text-secondary mx-1">|</span>
-                                    <RouterLink to="/password-reset" class="text-decoration-none text-secondary small">
+                                    <RouterLink to="/find-password" class="text-decoration-none text-secondary small">
                                         비밀번호 찾기
                                     </RouterLink>
                                     <span class="text-secondary mx-1">|</span>

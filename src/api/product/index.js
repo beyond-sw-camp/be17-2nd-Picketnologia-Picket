@@ -3,7 +3,7 @@ import api from '@/plugins/axiosInterceptor'
 const getProducts = async () => {
   let data = {}
 
-  let url = '/api/products.json'
+  let url = '/api/product/list'
 
   await api
     .get(url)

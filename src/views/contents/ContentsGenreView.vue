@@ -1,7 +1,9 @@
 <script setup>
-import { reactive, ref, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import contentsApi from '@/api/contents';
+import { ref, reactive, watch, onMounted } from 'vue';
 
-import api from '@/api/product'
+const route = useRoute();
 
 const regionOptions = ref([
     { value: '1', label: '지역 전체' },
@@ -72,42 +74,56 @@ watch(
     }
 )
 
-onMounted(async () => {
-    const response = await api.getProducts()
+watch(() => route.params.code, async (newValue) => {
+    const req = {
+        genre: newValue,
+    }
+    const response = await contentsApi.getContentsByGenre(req)
     if (response.success) {
-        products.value = response.results.productList
+        products.value = response.results.products
     } else {
         products.value = []
     }
 })
 
+onMounted(async () => {
+    const req = {
+        genre: route.params.code,
+    }
+    const response = await contentsApi.getContentsByGenre(req)
+    if (response.success) {
+        products.value = response.results.products
+    } else {
+        products.value = []
+    }
+})
 </script>
 
 <template>
-    <!-- carousel start -->
-    <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class=" carousel-inner">
-            <div class=" carousel-item active">
-                <img src="@/assets/image/slide01.png" class="d-block w-100" style="height: 600px;">
-            </div>
-            <div class="carousel-item">
-                <img src="@/assets/image/slide02.png" class="d-block w-100" style="height: 600px;">
-            </div>
+    <div class="container-lg d-flex flex-column gap-3 text-center">
+        <div>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
-    </div>
-    <!-- Carousel end -->
+        <div>
+            <h1>지금 할인 중</h1>
+        </div>
+        <div>
+            <h1>오픈 예정</h1>
+        </div>
 
-    <!-- product list start -->
+    </div>
+
+    <!-- 카드 -->
+
+    <!-- 지금 할인 중 -->
+
+    <!-- 오픈 예정 -->
+
+    <!-- 둘러보기 -->
     <section class="d-flex flex-column gap-2 container-lg">
         <h3 class="fs-2 align-self-center fw-semibold">공연 둘러보기</h3>
+        <div v-if="products.length === 0" class="text-center h1">
+            <p class="text-body-secondary">해당하는 공연이 없습니다.</p>
+        </div>
         <div class="d-flex gap-2">
             <select class="form-select w-auto" v-model="fetchData.selectedLocal">
                 <option v-for="option in regionOptions" :key="option.value" :value="option.value">
@@ -139,7 +155,7 @@ onMounted(async () => {
             </div>
         </div>
     </section>
-    <!-- product list end -->
+
 </template>
 
 <style scoped></style>
