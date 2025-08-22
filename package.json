@@ -10,6 +10,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@portone/browser-sdk": "^0.1.0",
     "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
     "pinia": "^3.0.3",
