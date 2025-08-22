@@ -4,30 +4,31 @@ import LoginNavBar from '@/components/LoginNavBar.vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import genreApi from '@/api/genre'
+import Logo from '@/components/Logo.vue'
 
 const route = useRoute()
 
 const genres = ref([
-  {
-    name: '뮤지컬',
-    code: 'musical'
-  },
-  {
-    name: '콘서트',
-    code: 'concert'
-  },
-  {
-    name: '전시/행사',
-    code: 'exhibition'
-  },
-  {
-    name: '아동/가족',
-    code: 'family'
-  },
-  {
-    name: '연극',
-    code: 'play'
-  }
+  // {
+  //   name: '뮤지컬',
+  //   code: 'musical'
+  // },
+  // {
+  //   name: '콘서트',
+  //   code: 'concert'
+  // },
+  // {
+  //   name: '전시/행사',
+  //   code: 'exhibition'
+  // },
+  // {
+  //   name: '아동/가족',
+  //   code: 'family'
+  // },
+  // {
+  //   name: '연극',
+  //   code: 'play'
+  // }
 ])
 
 const setActiveTab = (genre) => {
@@ -43,8 +44,9 @@ const props = defineProps({
 
 onMounted(async () => {
   const response = await genreApi.getGenres()
+  console.log(response)
   if (response.success) {
-    genres.value = response.data
+    genres.value = response.results.genres
   }
 })
 
@@ -53,11 +55,13 @@ onMounted(async () => {
 
 <template>
   <!-- header start -->
-  <div class="d-flex flex-column sticky-top bg-body border-bottom">
+  <div class="d-flex flex-column sticky-top bg-body border-bottom" style="height: 70px;">
     <nav class="navbar">
       <div class="d-flex gap-2 justify-content-between w-100 container-lg  ">
         <div class="d-flex">
-          <RouterLink to="/" class="navbar-brand fs-4"><strong class="text-primary">Pick</strong>et</RouterLink>
+          <div class="navbar-brand">
+            <Logo />
+          </div>
           <div class="position-relative align-self-end" style="max-width: 400px; width: 100%;">
             <input type="text" class="form-control pe-5" placeholder="공연을 검색하세요.">
             <img src="@/assets/icons/search.png" alt="search icon"

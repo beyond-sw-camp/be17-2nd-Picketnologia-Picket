@@ -5,6 +5,15 @@ import Stomp from 'stompjs'
 
 const router = useRouter()
 
+const props = defineProps({
+  productId: {
+    type: Number,
+    required: true,
+  },
+})
+
+const productId = ref(props.productId)
+
 const step = ref(1)
 const today = new Date()
 const availableDates = ['2025-07-08', '2025-07-09', '2025-07-10', '2025-07-17', '2025-07-18']
@@ -138,7 +147,7 @@ function prevStep() {
   <button
     @click="connectWebSocket"
     type="button"
-    class="btn btn-primary btn-lg"
+    class="btn btn-primary btn-lg shadow"
     data-bs-toggle="modal"
     data-bs-target="#bookingModal"
   >

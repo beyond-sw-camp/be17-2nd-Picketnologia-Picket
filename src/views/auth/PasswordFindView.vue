@@ -3,6 +3,7 @@ import { ref } from 'vue';
 
 import authApi from '@/api/auth';
 import Header from '@/components/auth/header.vue';
+import { RouterLink } from 'vue-router';
 
 const toggleStates = ref({
     isSendCode: false,
@@ -56,6 +57,9 @@ const sendLink = async () => {
                                     v-if="toggleStates.isSendCode" @click="sendLink">
                                     링크가 전송되지 않았거나, 링크를 잃어버리셨나요?
                                 </button>
+                                <RouterLink class="btn btn-lg btn-light border w-100 shadow-sm" to="/login">
+                                    취소
+                                </RouterLink>
                             </form>
                         </main>
                     </div>
