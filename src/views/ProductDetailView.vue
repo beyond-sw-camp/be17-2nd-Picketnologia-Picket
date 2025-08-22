@@ -34,16 +34,32 @@ const isTab = (tabName) => {
     else false;
 }
 
-const product = ref({})
+const product = ref({
+    idx: null,
+    name: '',
+    rating: '',
+    venueName: '',
+    venueAddress: '',
+    startDate: '',
+    endDate: '',
+    runningTime: 0,
+    posterUrl: '',
+    price: 0,
+    sessionDate: '',
+    sessionTime: 0,
+    description: '',
+});
+
 onMounted(async () => {
-    const productId = route.params.id
-    console.log(productId);
+    const req = {
+        productId: route.params.id
+    }
 
-    const response = await api.getProductDetail(productId)
+    const response = await api.getProductDetail(req)
 
-    console.log(response)
-    product.value = response.dbs.db
-
+    if (response.success) {
+        product.value = response.results
+    }
 
 })
 
@@ -118,21 +134,39 @@ const formatDate = (dateString) => {
         <div class="container-lg">
             <div class="d-flex gap-5 justify-content-center">
                 <div>
-                    <img :src="product.poster" class="img-fluid rounded" style="width: 400px; height: 600px;">
+                    <img :src="product.posterUrl" class="img-fluid rounded" style="width: 400px; height: 600px;">
                 </div>
 
-                <div class="d-flex flex-column gap-4">
-                    <h2 class="fw-bold">{{ product.prfnm }}</h2>
+                <div class="d-flex flex-column gap-4 w-50">
+                    <h2 class="fw-bold">{{ product.name }}</h2>
 
-                    <ul class="list-unstyled flex-fill">
-                        <li class="mb-4"><strong>장소:</strong>{{ product.fcltynm }}</li>
-                        <li class="mb-4"><strong>공연 기간:</strong> {{ product.prfpdfrom }} ~ {{ product.prfpdto }}</li>
-                        <li class="mb-4"><strong>관람 연령:</strong> {{ product.prfage }}</li>
-                        <li class="mb-4"><strong>가격:</strong> {{ product.pcseguidance }} </li>
-                    </ul>
-
+                    <table class="table table-borderless ">
+                        <tbody>
+                            <tr>
+                                <td><strong>장소</strong></td>
+                                <td>{{ product.venueName }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>공연 기간</strong></td>
+                                <td>{{ product.startDate }} ~ {{ product.endDate }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>공연 시간</strong></td>
+                                <td>{{ product.runningTime }} 분</td>
+                            </tr>
+                            <tr>
+                                <td><strong>관람 연령</strong></td>
+                                <td>{{ product.rating }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>가격</strong></td>
+                                <td>{{ product.price }} 원</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="flex-fill"></div>
                     <div class="d-grid">
-                        <BookingPage />
+                        <BookingPage :product-id="product.idx" />
                     </div>
                 </div>
             </div>
@@ -147,46 +181,7 @@ const formatDate = (dateString) => {
         </div>
 
         <div class="container-lg" v-if="isTab(tabs[0].name)">
-            {{ product.sty }}
-            <!-- <div>
-                <h3 class="card-title mb-3">뮤지컬 <strong>별빛 속으로</strong></h3>
-                <p class="text-muted mb-4">장르: 뮤지컬 | 공연시간: 120분 (인터미션 15분 포함) | 관람등급: 만 12세 이상</p>
-
-                <h5 class="mb-3 border-bottom pb-2">공연 개요</h5>
-                <p>
-                    '별빛 속으로'는 꿈을 잃어버린 한 소녀가 별빛을 따라 떠나는 환상적인 모험을 그린 뮤지컬입니다.<br>
-                    환상적인 무대와 감동적인 음악, 배우들의 열연이 어우러져 관객들에게 희망과 용기를 선사합니다.
-                </p>
-
-                <h5 class="mt-4 mb-3 border-bottom pb-2">출연진</h5>
-                <ul class="list-group list-group-flush mb-4">
-                    <li class="list-group-item px-0">주연: 김하늘, 이민호, 박소담</li>
-                    <li class="list-group-item px-0">조연: 정우성, 한지민</li>
-                    <li class="list-group-item px-0">연출: 김재영</li>
-                </ul>
-
-                <h5 class="mb-3 border-bottom pb-2">줄거리</h5>
-                <p>
-                    도시에 사는 평범한 소녀 수진은 어느 날 우연히 오래된 별 지도를 발견하게 됩니다.<br>
-                    그 별지도를 따라 떠난 여행 속에서 수진은 다양한 인물들과 만나고, 자신이 진정으로 원하는 삶을 찾아가게 됩니다.
-                </p>
-
-                <h5 class="mt-4 mb-3 border-bottom pb-2">관람 포인트</h5>
-                <ul class="list-unstyled">
-                    <li>⭐ 최첨단 영상과 조명이 어우러진 환상적인 무대 연출</li>
-                    <li>⭐ 감성을 자극하는 오리지널 사운드트랙과 라이브 공연</li>
-                    <li>⭐ 관객과 소통하는 배우들의 생생한 연기</li>
-                    <li>⭐ 특별한 깜짝 이벤트와 선물이 공연 중간 제공</li>
-                </ul>
-
-                <h5 class="mt-4 mb-3 border-bottom pb-2 text-danger">유의사항</h5>
-                <ul class="list-unstyled text-muted small">
-                    <li>• 공연 시작 후 입장 시간이 제한됩니다.</li>
-                    <li>• 사진 및 영상 촬영은 엄격히 금지되어 있습니다.</li>
-                    <li>• 어린이 및 휠체어석 관련 별도 문의 바랍니다.</li>
-                    <li>• 티켓 교환 및 환불은 공연 당일 3일 전까지만 가능합니다.</li>
-                </ul>
-            </div> -->
+            {{ product.description }}
         </div>
 
         <div class="container-lg" v-if="isTab(tabs[1].name)">

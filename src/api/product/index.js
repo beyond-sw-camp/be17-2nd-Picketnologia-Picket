@@ -17,9 +17,9 @@ const getProducts = async () => {
   return data
 }
 
-const getProductDetail = async (productId) => {
+const getProductDetail = async (req) => {
   let data = {}
-  const url = '/api/products_' + productId + '.json'
+  const url = '/api/products/' + req.productId
 
   await api
     .get(url)
@@ -32,6 +32,5 @@ const getProductDetail = async (productId) => {
 
   return data
 }
-
 
 export default { getProducts, getProductDetail }

@@ -111,7 +111,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="d-flex flex-column gap-5 container-lg pt-4">
+    <div class="d-flex flex-column gap-5 container-lg">
         <!-- 카드 -->
 
         <!-- 할인 -->

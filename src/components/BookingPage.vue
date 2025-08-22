@@ -4,6 +4,14 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
+const props = defineProps({
+  productId: {
+    type: Number,
+    required: true
+  }
+})
+
+const productId = ref(props.productId)
 
 const step = ref(1)
 const today = new Date()
@@ -95,7 +103,7 @@ function prevStep() {
 
 <template>
   <!-- 예매하기 버튼 -->
-  <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#bookingModal">
+  <button type="button" class="btn btn-primary btn-lg shadow" data-bs-toggle="modal" data-bs-target="#bookingModal">
     예매하기
   </button>
 
