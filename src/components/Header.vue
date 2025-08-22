@@ -4,6 +4,7 @@ import LoginNavBar from '@/components/LoginNavBar.vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import genreApi from '@/api/genre'
+import Logo from '@/components/Logo.vue'
 
 const route = useRoute()
 
@@ -57,7 +58,9 @@ onMounted(async () => {
     <nav class="navbar">
       <div class="d-flex gap-2 justify-content-between w-100 container-lg  ">
         <div class="d-flex">
-          <RouterLink to="/" class="navbar-brand fs-4"><strong class="text-primary">Pick</strong>et</RouterLink>
+          <div class="navbar-brand">
+            <Logo />
+          </div>
           <div class="position-relative align-self-end" style="max-width: 400px; width: 100%;">
             <input type="text" class="form-control pe-5" placeholder="공연을 검색하세요.">
             <img src="@/assets/icons/search.png" alt="search icon"

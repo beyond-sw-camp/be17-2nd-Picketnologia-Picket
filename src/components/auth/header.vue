@@ -1,13 +1,14 @@
 <script setup>
 import { computed, ref } from 'vue';
+import Logo from '@/components/Logo.vue';
 
 const props = defineProps(['view'])
 
 const headerData = ref(
     {
         login: {
-            title: "PICKET에 오신것을 환영합니다.",
-            subtitle: "picket은 가장 빠른 티켓팅 플랫폼입니다."
+            title: "Login",
+            subtitle: ""
         },
         email: {
             title: "계정 찾기",
@@ -41,10 +42,11 @@ const selectedHeader = computed(() => headerData.value[props.view])
 
 <template>
     <div class="text-center mb-4">
-        <RouterLink to="/">
-            <img src="@/assets/image/logo.png" alt="picket 로고" class="w-50 mb-4">
-        </RouterLink>
-        <h1 class="h2 fw-bold text-dark mb-3">{{ selectedHeader.title }}</h1>
+        <!-- <img src="@/assets/image/logo.png" alt="picket 로고" class="w-50 mb-4"> -->
+        <div class="mb-5">
+            <Logo logo-size="fs-1" />
+        </div>
+        <h1 class="h4 fw-bold text-dark mb-3">{{ selectedHeader.title }}</h1>
         <p class="display-12 fw-bold text-uppercase" v-html="selectedHeader.subtitle">
         </p>
     </div>
