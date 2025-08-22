@@ -7,7 +7,7 @@ const getGenres = async () => {
   await api
     .get(url)
     .then((res) => {
-      data = res.data.genres
+      data = res.data
     })
     .catch((error) => {
       data = error.response.data

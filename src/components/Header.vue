@@ -9,26 +9,26 @@ import Logo from '@/components/Logo.vue'
 const route = useRoute()
 
 const genres = ref([
-  {
-    name: '뮤지컬',
-    code: 'musical'
-  },
-  {
-    name: '콘서트',
-    code: 'concert'
-  },
-  {
-    name: '전시/행사',
-    code: 'exhibition'
-  },
-  {
-    name: '아동/가족',
-    code: 'family'
-  },
-  {
-    name: '연극',
-    code: 'play'
-  }
+  // {
+  //   name: '뮤지컬',
+  //   code: 'musical'
+  // },
+  // {
+  //   name: '콘서트',
+  //   code: 'concert'
+  // },
+  // {
+  //   name: '전시/행사',
+  //   code: 'exhibition'
+  // },
+  // {
+  //   name: '아동/가족',
+  //   code: 'family'
+  // },
+  // {
+  //   name: '연극',
+  //   code: 'play'
+  // }
 ])
 
 const setActiveTab = (genre) => {
@@ -44,8 +44,9 @@ const props = defineProps({
 
 onMounted(async () => {
   const response = await genreApi.getGenres()
+  console.log(response)
   if (response.success) {
-    genres.value = response.data
+    genres.value = response.results.genres
   }
 })
 
