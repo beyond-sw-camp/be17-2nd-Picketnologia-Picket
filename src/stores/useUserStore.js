@@ -6,6 +6,7 @@ export const useUserStore = defineStore('user', {
     idx: 0,
     nickname: '',
     role: '',
+    isSeller: false,
     isLogin: false,
   }),
   actions: {
@@ -14,6 +15,7 @@ export const useUserStore = defineStore('user', {
       this.idx = user.idx
       this.nickname = user.nickname
       this.role = user.role
+      this.isSeller = isSeller(user.userType)
     },
     logout() {
       this.$reset() // 상태 초기화
@@ -25,3 +27,7 @@ export const useUserStore = defineStore('user', {
     storage: sessionStorage,
   },
 })
+
+const isSeller = (userType) => {
+  return userType === 'SELLER'
+}

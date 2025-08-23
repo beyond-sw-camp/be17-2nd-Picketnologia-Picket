@@ -7,9 +7,9 @@ const userStore = useUserStore();
 
 const isDropdownOpen = ref(false);
 
-const toggleDropdown = () => {
-    isDropdownOpen.value = !isDropdownOpen.value;
-};
+// const toggleDropdown = () => {
+//     isDropdownOpen.value = !isDropdownOpen.value;
+// };
 
 const logout = async () => {
     const response = await api.logout();
@@ -41,7 +41,7 @@ const logout = async () => {
                     <span>마이페이지</span>
                 </RouterLink>
             </li>
-            <li>
+            <li v-if="userStore.isSeller">
                 <RouterLink class="link-underline-light link-dark dropdown-item d-flex gap-1" to="/seller">
                     <img src="@/assets/icons/store.png" alt="seller icon"></img>
                     <span>판매자 관리 페이지</span>
