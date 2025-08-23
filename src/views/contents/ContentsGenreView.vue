@@ -2,8 +2,8 @@
 import { useRoute } from 'vue-router';
 import contentsApi from '@/api/contents';
 import { ref, watch, onMounted } from 'vue';
-import RegionSelector from '@/components/seletor/RegionSelector.vue';
-import SortOptionSelector from '@/components/seletor/SortOptionSelector.vue';
+import RegionSelector from '@/components/selector/RegionSelector.vue';
+import SortOptionSelector from '@/components/selector/SortOptionSelector.vue';
 
 const route = useRoute();
 
