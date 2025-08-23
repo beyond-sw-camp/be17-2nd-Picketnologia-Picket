@@ -2,6 +2,7 @@
 import { useRoute } from 'vue-router';
 import contentsApi from '@/api/contents';
 import { ref, reactive, watch, onMounted } from 'vue';
+import RegionSeletor from '@/components/RegionSeletor.vue';
 
 const route = useRoute();
 
@@ -154,11 +155,8 @@ onMounted(async () => {
                 <p class="text-body-secondary">해당하는 공연이 없습니다.</p>
             </div>
             <div class="d-flex gap-2 sticky-top bg-white p-2" style="top: 70px;">
-                <select class="form-select w-auto" v-model="fetchData.selectedLocal">
-                    <option v-for="option in regionOptions" :key="option.value" :value="option.value">
-                        {{ option.label }}
-                    </option>
-                </select>
+                <!-- 지역 선택 -->
+                <RegionSeletor />
                 <select class="form-select w-auto" v-model="fetchData.selectedSorted">
                     <option v-for="option in sortedOtpions" :key="option.value" :value="option.value">
                         {{ option.label }}
