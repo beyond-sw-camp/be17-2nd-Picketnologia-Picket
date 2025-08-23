@@ -28,6 +28,9 @@ const requestFindEmail = async (req) => {
  * @returns
  */
 const sendAuthCodeToEmail = async (req) => {
+  const loadingStore = useLoadingStore()
+  loadingStore.startLoading()
+
   let data = {}
   let url = '/api/auth/email/verify-code'
 
@@ -40,6 +43,9 @@ const sendAuthCodeToEmail = async (req) => {
     .catch((error) => {
       console.log(error)
       data = error.data
+    })
+    .finally(() => {
+      loadingStore.stopLoading()
     })
 
   return data
@@ -106,8 +112,10 @@ const sendPasswordResetLink = async (req) => {
     .catch((error) => {
       data = error.data
     })
+    .finally(() => {
+      loadingStore.stopLoading()
+    })
 
-  loadingStore.stopLoading()
   return data
 }
 

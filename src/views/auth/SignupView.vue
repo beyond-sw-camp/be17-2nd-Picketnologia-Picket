@@ -2,8 +2,8 @@
 import { onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useRouter } from 'vue-router';
-import memberApi from '@/api/member';
-import authApi from '@/api/auth';
+import memberAPI from '@/api/member';
+import authAPI from '@/api/auth';
 
 import Header from '@/components/auth/header.vue';
 
@@ -34,28 +34,12 @@ const toggleStates = reactive({
 });
 
 const code = ref('');
+const userTypes = ref([]);
+const genders = ref([]);
 
-const userType = ref([
-    {
-        name: "NORMAL",
-        description: "일반 사용자"
-    },
-    {
-        name: "SELLER",
-        description: "판매자"
-    }
-])
-
-const gender = ref([
-    {
-        name: "MALE",
-        description: "남성"
-    },
-    {
-        name: "FEMALE",
-        description: "여성"
-    }
-])
+const isSeller = () => {
+    return states.userType === userTypes.value[1]?.code || '';
+}
 
 /**
  * 이메일 인증 코드 전송 요청
@@ -70,7 +54,7 @@ const sendVerificationCode = async () => {
         return;
     }
 
-    const response = await authApi.sendAuthCodeToEmail(req);
+    const response = await authAPI.sendAuthCodeToEmail(req);
     if (response.success) {
         alert('인증 코드가 전송되었습니다. 이메일을 확인해주세요.');
         toggleStates.isSendCode = true;
@@ -99,7 +83,7 @@ const requestVerificateCode = async () => {
         return;
     }
 
-    const response = await authApi.verifyEmailCode(req);
+    const response = await authAPI.verifyEmailCode(req);
     if (response.success) {
         toggleStates.isVerified = true;
         alert('인증이 완료되었습니다.');
@@ -112,8 +96,6 @@ const requestVerificateCode = async () => {
  * 회원 가입 요청
  */
 const requestSignup = async () => {
-    console.log(states.password)
-    console.log(states.confirmPassword)
 
     if (!states.password || !states.confirmPassword) {
         alert('비밀번호를 입력하세요');
@@ -121,8 +103,6 @@ const requestSignup = async () => {
     }
 
     if (states.password !== states.confirmPassword) {
-        console.log(states.password)
-        console.log(states.confirmPassword)
         return;
     }
 
@@ -136,7 +116,7 @@ const requestSignup = async () => {
         return;
     }
 
-    if (states.userType === 'seller' && (!sellerFields.representativeName || !sellerFields.businessNumber || !sellerFields.businessAddress)) {
+    if (states.userType === userTypes.value[1]?.code && (!sellerFields.representativeName || !sellerFields.businessNumber || !sellerFields.businessAddress)) {
         alert('판매자 정보를 모두 입력해주세요.');
         return;
     }
@@ -148,7 +128,7 @@ const requestSignup = async () => {
         email: states.email.trim(),
         password: states.password.trim(),
         phoneNumber: states.phoneNumber.trim(),
-        gender: states.gender.trim(),
+        gender: states.gender,
         userType: states.userType,
         term: states.term,
         representativeName: sellerFields.representativeName.trim(),
@@ -156,7 +136,7 @@ const requestSignup = async () => {
         businessAddress: sellerFields.businessAddress.trim(),
     };
 
-    const response = await memberApi.requestSignup(req);
+    const response = await memberAPI.requestSignup(req);
     if (response.success) {
         alert('회원가입이 완료되었습니다.');
         router.push('/login');
@@ -169,14 +149,16 @@ const requestSignup = async () => {
  * 회원 가입 뷰가 onMounted될 때 사용자 유형과 성별 정보를 가져온다.
  */
 onMounted(async () => {
-    const response = await memberApi.getSignupViewInfo();
-    if (response.success) {
-        userType.value = response.results.userTypes;
-        gender.value = response.results.genders;
 
-        // 회원 유형, 성별 초기화
-        states.userType = userType.value[0].name;
-        states.gender = gender.value[0].name;
+    const response = await memberAPI.getSignupViewInfo();
+
+    if (response.success) {
+        userTypes.value = response.results.userTypes;
+        genders.value = response.results.genders;
+
+        // 기본값 설정
+        states.gender = genders.value[0].code;
+        states.userType = userTypes.value[0].code;
     } else {
         console.error('회원가입 뷰 정보 가져오기 실패:', response.error);
     }
@@ -195,18 +177,11 @@ onMounted(async () => {
                             <div class="mb-4">
                                 <label class="form-label fw-bold">회원 유형</label>
                                 <div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="userType" id="regularMember"
-                                            :value="userType[0].name" checked v-model="states.userType">
-                                        <label class="form-check-label" for="regularMember">{{ userType[0].description
-                                        }}</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="userType" id="sellerMember"
-                                            :value="userType[1].name" v-model="states.userType">
-                                        <label class="form-check-label" for="sellerMember">
-                                            {{ userType[1].description }}
-                                        </label>
+                                    <div class="form-check form-check-inline" v-for="userType in userTypes"
+                                        :key="userType.code">
+                                        <input class="form-check-input" type="radio" name="userType" :id="userType.code"
+                                            :value="userType.code" v-model="states.userType">
+                                        <label class="form-check-label" :for="userType.code">{{ userType.name }}</label>
                                     </div>
                                 </div>
                             </div>
@@ -243,18 +218,12 @@ onMounted(async () => {
                                     </div>
                                 </div>
                                 <div class="col-md-6 d-flex align-items-center">
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="gender" id="genderMale"
-                                            :value="gender[0].name" checked v-model="states.gender">
-                                        <label class="form-check-label" for="genderMale">
-                                            {{ gender[0].description }}
-                                        </label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="gender" id="genderFemale"
-                                            :value="gender[1].name" v-model="states.gender">
-                                        <label class="form-check-label" for="genderFemale">
-                                            {{ gender[1].description }}
+                                    <div class="form-check form-check-inline" v-for="gender in genders"
+                                        :key="gender.code">
+                                        <input class="form-check-input" type="radio" name="gender" :id="gender.code"
+                                            :value="gender.code" v-model="states.gender">
+                                        <label class="form-check-label" :for="gender.code">
+                                            {{ gender.name }}
                                         </label>
                                     </div>
                                 </div>
@@ -308,7 +277,7 @@ onMounted(async () => {
                                 </div>
                             </div>
 
-                            <div id="seller-fields" class="mt-4" v-if="states.userType === userType[1].name">
+                            <div id="seller-fields" class="mt-4" v-if="isSeller()">
                                 <hr>
                                 <h5 class="my-4 fw-bold">판매자 정보</h5>
                                 <div class="row g-3">
