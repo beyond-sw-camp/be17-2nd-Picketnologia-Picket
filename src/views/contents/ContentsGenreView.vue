@@ -1,39 +1,11 @@
 <script setup>
 import { useRoute } from 'vue-router';
 import contentsApi from '@/api/contents';
-import { ref, reactive, watch, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import RegionSeletor from '@/components/RegionSeletor.vue';
+import SortOptionSelector from '@/components/seletor/SortOptionSelector.vue';
 
 const route = useRoute();
-
-const regionOptions = ref([
-    { value: '1', label: '지역 전체' },
-    { value: '2', label: '강원' },
-    { value: '3', label: '경기' },
-    { value: '4', label: '경상' },
-    { value: '5', label: '광주' },
-    { value: '6', label: '대구' },
-    { value: '7', label: '대전' },
-    { value: '8', label: '부산' },
-    { value: '9', label: '서울' },
-    { value: '10', label: '울산' },
-    { value: '11', label: '인천' },
-    { value: '12', label: '전라' },
-    { value: '13', label: '제주' },
-    { value: '14', label: '충청' }
-])
-
-const sortedOtpions = ref([
-    { value: '1', label: '최신순' },
-    { value: '2', label: '오래된순' },
-    { value: '3', label: '일간 랭킹순' },
-    { value: '3', label: '주간 랭킹순' },
-])
-
-const fetchData = reactive({
-    selectedSorted: sortedOtpions.value[0].value,
-    selectedLocal: regionOptions.value[0].value
-})
 
 const products = ref([
     {
@@ -56,33 +28,6 @@ const upcomingPerformances = ref([
         openDate: '2025.6.15',
     }
 ])
-
-watch(
-    () => fetchData.selectedSorted,
-    async (newValue) => {
-        if (!newValue) return
-
-        const params = {
-            sorted: fetchData.selectedSorted
-        }
-
-        // const response = await api.getProucts(params);
-
-    }
-)
-
-watch(
-    () => fetchData.selectedLocal,
-    async (newValue) => {
-        if (!newValue) return
-
-        const params = {
-            region: fetchData.selectedLocal
-        }
-
-        // const response = await fetchData(selectedSorted)
-    }
-)
 
 const getContents = async (req) => {
     const response = await contentsApi.getContentsByGenre(req)
@@ -157,11 +102,9 @@ onMounted(async () => {
             <div class="d-flex gap-2 sticky-top bg-white p-2" style="top: 70px;">
                 <!-- 지역 선택 -->
                 <RegionSeletor />
-                <select class="form-select w-auto" v-model="fetchData.selectedSorted">
-                    <option v-for="option in sortedOtpions" :key="option.value" :value="option.value">
-                        {{ option.label }}
-                    </option>
-                </select>
+
+                <!-- 정렬 옵션 선택 -->
+                <SortOptionSelector />
             </div>
             <div class="row row-cols-5">
                 <div class=" col mb-4" v-for="product, index in products">
