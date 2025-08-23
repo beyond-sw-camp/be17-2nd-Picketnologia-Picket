@@ -4,12 +4,13 @@ import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
 import axios from 'axios'
 import { RouterLink } from 'vue-router'
+import genreAPI from '@/api/genre'
 
 // DTO와 맵핑
 const form = ref({
     name: '',
     price: null,
-    category: '',
+    genre: '',
     rating: '',
     venueName: '',
     venueAddress: '',
@@ -28,9 +29,17 @@ const rounds = ref([])
 const posterFile = ref(null)
 const detailFiles = ref(null)
 
-const categories = ref([
-    "콘서트", "뮤지컬", "전시"
-])
+const genres = ref([])
+const getGenre = async () => {
+    const response = await genreAPI.getGenres()
+    if (response.success) {
+        genres.value = response.results.genres
+    } else {
+        console.error('장르 목록 가져오기 실패:', response.error)
+    }
+}
+
+onMounted(getGenre)
 
 const filmRatings = ref([
     "전체연령가", "12세 관람가", "15세 관람가", "19세 이상 관람가"
@@ -88,7 +97,7 @@ const submitForm = async () => {
 
     // formData 객체 생성
     const formData = new FormData();
-    
+
     // ProductRegister DTO에 해당하는 JSON 데이터를 Blob으로 만들어 추가
     const productData = JSON.stringify(form.value);
     // formData.append('product', new Blob([productData], { type: 'application/json' }));
@@ -133,12 +142,12 @@ const submitForm = async () => {
                 </div>
             </div>
             <div class="row mb-3">
-                <label for="category" class="col-sm-2 col-form-label">카테고리</label>
+                <label for="category" class="col-sm-2 col-form-label">장르</label>
                 <div class="col-sm-10">
-                    <select class="form-select" id="category" v-model="form.category">
+                    <select class="form-select" id="category" v-model="form.genre">
                         <option value="" disabled selected>장르를 선택하세요.</option>
-                        <option v-for="category in categories" :key="category" :value="category">
-                            {{ category }}
+                        <option v-for="genre in genres" :key="genre" :value="genre.code">
+                            {{ genre.name }}
                         </option>
                     </select>
                 </div>
@@ -157,7 +166,8 @@ const submitForm = async () => {
             <div class="row mb-3">
                 <label for="venue" class="col-sm-2 col-form-label">공연장</label>
                 <div class="col-sm-10">
-                    <input type="text" class="form-control mb-3" id="venue" placeholder="공연장명" v-model="form.venueName" />
+                    <input type="text" class="form-control mb-3" id="venue" placeholder="공연장명"
+                        v-model="form.venueName" />
                     <input type="text" class="form-control" placeholder="공연장 주소" v-model="form.venueAddress" />
                 </div>
             </div>
