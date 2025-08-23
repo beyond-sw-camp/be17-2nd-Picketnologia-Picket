@@ -2,7 +2,7 @@
 import { useRoute } from 'vue-router';
 import contentsApi from '@/api/contents';
 import { ref, watch, onMounted } from 'vue';
-import RegionSeletor from '@/components/RegionSeletor.vue';
+import RegionSelector from '@/components/seletor/RegionSelector.vue';
 import SortOptionSelector from '@/components/seletor/SortOptionSelector.vue';
 
 const route = useRoute();
@@ -101,7 +101,7 @@ onMounted(async () => {
             </div>
             <div class="d-flex gap-2 sticky-top bg-white p-2" style="top: 70px;">
                 <!-- 지역 선택 -->
-                <RegionSeletor />
+                <RegionSelector />
 
                 <!-- 정렬 옵션 선택 -->
                 <SortOptionSelector />
