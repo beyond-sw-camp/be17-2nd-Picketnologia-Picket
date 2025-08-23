@@ -10,7 +10,7 @@ const memberLogin = async (req) => {
       data = res.data
     })
     .catch((error) => {
-      data = error.data
+      data = error.response.data
     })
 
   return data
@@ -26,7 +26,7 @@ const logout = async (req) => {
       data = res.data
     })
     .catch((error) => {
-      data = error.data
+      data = error.response.data
     })
 
   return data
@@ -43,7 +43,7 @@ const requestSignup = async (req) => {
       data = res.data
     })
     .catch((error) => {
-      data = error.data
+      data = error.response.data
     })
 
   return data
@@ -59,7 +59,7 @@ const getSignupViewInfo = async () => {
       data = res.data
     })
     .catch((error) => {
-      data = error.data
+      data = error.response.data
     })
 
   return data
