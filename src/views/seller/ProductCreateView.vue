@@ -2,7 +2,6 @@
 import { ref, onMounted, reactive } from 'vue'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
-import axios from 'axios'
 import genreAPI from '@/api/genre'
 import productAPI from '@/api/product'
 
@@ -17,8 +16,7 @@ const form = ref({
     startDate: '',
     endDate: '',
     runningTime: null,
-    // sessionDate: '',
-    // sessionTime: null,
+    openDate: '',
     description: '',
     roundOption: {
         startDate: '',
@@ -232,21 +230,24 @@ const addRoundOptionToForm = () => {
     };
 }
 
+// 오픈 예정일 설정
+const openDate = reactive({
+    date: '',
+    time: '',
+    toForm: () => {
+        form.value.openDate = openDate.date + 'T' + openDate.time;
+    }
+})
+
 // 등록하기 버튼 실행, quill 텍스트 description에 저장
 const submitForm = async () => {
     form.value.description = quill.root.innerText;
 
-    const roundDTO = {
-        startDate: roundOption.startDate,
-        endDate: roundOption.endDate,
-        selectedDays: roundOption.selectedDays.map(day => { return { code: day.code, times: day.times } }),
-        sameTimes: roundOption.sameTimes,
-        manualRounds: roundOption.manualRounds
-    };
-
     // roundDTO를 form.value에 추가
     form.value.roundOption = addRoundOptionToForm();
-    // addRoundOptionToForm();
+
+    // 오픈 예정일 형식 변환 후 추가
+    openDate.toForm();
 
     // formData 객체 생성
     const formData = new FormData();
@@ -275,18 +276,83 @@ const submitForm = async () => {
         alert('상품 등록에 실패했습니다.', response.message);
     }
 }
+
+const seatMap = reactive({
+    seats: [],
+    createSeatMap: (row, col) => {
+
+        if (row > 26) {
+            alert('좌석 행은 최대 26행까지 생성할 수 있습니다.');
+            return;
+        }
+
+        // 좌석 맵 생성 로직
+        seatMap.seats = Array.from(Array(row), () => new Array(col).fill(null));
+        seatMap.seats.forEach((r, rowIndex) => {
+            r.forEach((c, colIndex) => {
+                seatMap.seats[rowIndex][colIndex] = {
+                    name: `${String.fromCharCode(65 + rowIndex)}-${colIndex + 1}`,
+                    grade: null
+                }
+            })
+        })
+    },
+    insertGrade: (seat) => {
+        if (!seatGrade.getSelectedGradeCode()) {
+            alert('등급을 선택하세요.')
+        }
+
+        if (seat.grade === seatGrade.getSelectedGradeCode()) {
+            seat.grade = null
+            return;
+        }
+
+        seat.grade = seatGrade.getSelectedGradeCode();
+    },
+    getSeatGrade: (seat) => {
+        return seat.grade ? seat.grade.toLowerCase() : null
+    }
+})
+
+const seatGrade = reactive({
+    grades: [
+        { code: 'VIP', name: 'VIP석', price: null },
+        { code: 'R', name: 'R석', price: null },
+        { code: 'S', name: 'S석', price: null },
+        { code: 'A', name: 'A석', price: null }
+    ],
+    selectedGrade: null,
+    selectGrade: (grade) => {
+        seatGrade.selectedGrade = grade;
+    },
+    getSelectedGradeCode: () => {
+        return seatGrade.selectedGrade ? seatGrade.selectedGrade.code : null;
+    },
+    getGradeCode: (grade) => {
+        console.log(grade.code.toLowerCase())
+        return grade.code.toLowerCase();
+    }
+})
+
+onMounted(() => {
+    seatMap.createSeatMap(10, 10);
+})
 </script>
 
 <template>
     <div class="d-flex flex-column col py-3">
 
         <form @submit.prevent="submitForm">
+            <!-- 상품 이름 start -->
             <div class="row mb-3">
                 <label for="name" class="col-sm-2 col-form-label">상품이름</label>
                 <div class="col-sm-10">
                     <input type="text" class="form-control" id="name" v-model="form.name">
                 </div>
             </div>
+            <!-- 상품 이름 end -->
+
+            <!-- 장르 start -->
             <div class="row mb-3">
                 <label for="category" class="col-sm-2 col-form-label">장르</label>
                 <div class="col-sm-10">
@@ -298,6 +364,9 @@ const submitForm = async () => {
                     </select>
                 </div>
             </div>
+            <!-- 장르 end -->
+
+            <!-- 관람 등급 start -->
             <div class="row mb-3">
                 <label for="rating" class="col-sm-2 col-form-label">관람등급</label>
                 <div class="col-sm-10">
@@ -309,6 +378,9 @@ const submitForm = async () => {
                     </select>
                 </div>
             </div>
+            <!-- 관람 등급 end -->
+
+            <!-- 공연장 start -->
             <div class="row mb-3">
                 <label for="venue" class="col-sm-2 col-form-label">공연장</label>
                 <div class="col-sm-10">
@@ -317,6 +389,76 @@ const submitForm = async () => {
                     <input type="text" class="form-control" placeholder="공연장 주소" v-model="form.venueAddress" />
                 </div>
             </div>
+            <!-- 공연장 end -->
+
+            <!-- 좌석 별 등급 지정 start -->
+            <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">좌석 별 등급 지정</label>
+                <div class="col-sm-10">
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-dark btn-lg shadow w-100" data-bs-toggle="modal"
+                        data-bs-target="#settingSeatModal">
+                        좌석 등급 지정하기
+                    </button>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="settingSeatModal" data-bs-backdrop="static" data-bs-keyboard="false"
+                        tabindex="-1" aria-labelledby="settingSeatModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                            <div class="modal-content text-center">
+                                <!-- 좌석 등급 start -->
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="settingSeatModalLabel">좌석 등급 지정하기</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <!-- 좌석 등급 end -->
+
+                                <!-- 좌석 MAP start -->
+                                <div class="modal-body">
+                                    <div class="d-flex flex-column justify-content-center align-items-center gap-3">
+                                        <div>
+                                            등급을 선택하세요.
+                                        </div>
+                                        <div class="d-flex gap-2 ">
+                                            <div class="form-check" v-for="(grade, index) in seatGrade.grades">
+                                                <input class="form-check-input"
+                                                    :class="[seatGrade.getGradeCode(grade), 'color-box', 'border']"
+                                                    type="radio" name="seatGrade" :id="`grade-${grade.code}`"
+                                                    @click="seatGrade.selectGrade(grade)" />
+                                                <label class="form-check-label" :class="grade.code"
+                                                    :for="`grade-${grade.code}`">
+                                                    {{ grade.name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="seat-map">
+                                            <div class="seat-row" v-for="(row, rowIndex) in seatMap.seats"
+                                                :key="rowIndex">
+                                                <div v-for="(seat, colIndex) in row" :key="colIndex" class="seat"
+                                                    :class="seatMap.getSeatGrade(seat)"
+                                                    @click="seatMap.insertGrade(seat)">
+                                                    {{ seat.name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 좌석 MAP end -->
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-dark w-100 btn-lg shadow"
+                                        data-bs-dismiss="modal">확인</button>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 좌석 별 등급 지정 end -->
+
+            <!-- 공연 일시 start -->
             <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">공연 일시</label>
                 <div class="col-sm-10 d-flex gap-2 align-items-center">
@@ -326,6 +468,9 @@ const submitForm = async () => {
                     <input type="date" class="form-control" v-model="form.endDate" />
                 </div>
             </div>
+            <!-- 공연 일시 end -->
+
+            <!-- 공연 시간 start -->
             <div class="row mb-3">
                 <label class="col-sm-2 col-form-label">공연 시간</label>
                 <div class="col-sm-10 d-flex gap-2 align-items-center">
@@ -333,19 +478,35 @@ const submitForm = async () => {
                     <input type="number" class="form-control" v-model="form.runningTime" />
                 </div>
             </div>
+            <!-- 공연 시간 end -->
+
+            <!-- 포스터 이미지 start -->
             <div class="row mb-3">
                 <label class="col-form-label col-sm-2">포스터 이미지</label>
                 <div class="col-sm-10">
                     <input type="file" class="form-control" @change="handlePosterFileChange" required />
                 </div>
             </div>
+            <!-- 포스터 이미지 end -->
 
+            <!-- 가격 start -->
             <div class="row mb-3">
                 <label for="price" class="col-form-label col-sm-2">가격</label>
                 <div class="col-sm-10">
                     <input type="number" class="form-control" id="price" v-model="form.price" />
                 </div>
             </div>
+            <!-- 가격 end -->
+
+            <!-- 오픈 예정일 start -->
+            <div class="row mb-3">
+                <label for="price" class="col-form-label col-sm-2">티켓 오픈 예정일</label>
+                <div class="col-sm-10 d-flex gap-2">
+                    <input type="date" class="form-control" v-model="openDate.date" />
+                    <input type="time" class="form-control" v-model="openDate.time" />
+                </div>
+            </div>
+            <!-- 오픈 예정일 end -->
 
             <!-- 회차 등록 start -->
             <div class="row mb-3">
@@ -512,5 +673,72 @@ const submitForm = async () => {
     min-height: 400px;
     max-height: 400px;
     overflow-y: auto;
+}
+
+.seat-map {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.seat-row {
+    display: flex;
+    gap: 4px;
+}
+
+.seat {
+    width: 50px;
+    height: 50px;
+    padding: 6px;
+    background: #fff;
+    border: solid 1px #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.seat.vip {
+    background-color: gold;
+    color: black;
+}
+
+.seat.r {
+    background-color: lightblue;
+    color: black;
+}
+
+.seat.s {
+    background-color: lightgreen;
+    color: black;
+}
+
+.seat.a {
+    background-color: #ddd;
+    color: #555;
+}
+
+.color-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+}
+
+.color-box.vip {
+    background-color: gold;
+}
+
+.color-box.r {
+    background-color: lightblue;
+}
+
+.color-box.s {
+    background-color: lightgreen;
+}
+
+.color-box.a {
+    background-color: #ddd;
 }
 </style>
