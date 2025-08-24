@@ -4,8 +4,6 @@
 
 <template>
     <div class="col py-3">
-        <h3 class="fw-bolder">매출 통계</h3>
-
         <!-- 일매출 조회 -->
         <div class="fw-bolder fs-5 align-items-start w-100">일 매출 조회</div>
         <div class="row mb-3 g-3">

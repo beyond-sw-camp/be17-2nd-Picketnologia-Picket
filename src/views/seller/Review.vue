@@ -7,8 +7,6 @@
         <div class="d-flex flex-column align-items-center gap-5 justify-content-between h-100">
 
             <div class="w-100 d-flex flex-column gap-2 flex-fill">
-                <h1 class="fw-bolder fs-4">상품 리뷰</h1>
-
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-end gap-3">
                         <label class="form-label fw-bold">공연 선택</label>

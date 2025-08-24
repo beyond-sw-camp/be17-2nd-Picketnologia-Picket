@@ -8,28 +8,7 @@ import Logo from '@/components/Logo.vue'
 
 const route = useRoute()
 
-const genres = ref([
-  // {
-  //   name: '뮤지컬',
-  //   code: 'musical'
-  // },
-  // {
-  //   name: '콘서트',
-  //   code: 'concert'
-  // },
-  // {
-  //   name: '전시/행사',
-  //   code: 'exhibition'
-  // },
-  // {
-  //   name: '아동/가족',
-  //   code: 'family'
-  // },
-  // {
-  //   name: '연극',
-  //   code: 'play'
-  // }
-])
+const genres = ref([])
 
 const setActiveTab = (genre) => {
   return genre.code === route.params.code
@@ -39,6 +18,18 @@ const props = defineProps({
   isGenre: {
     type: Boolean,
     default: true
+  },
+  onlyLogo: {
+    type: Boolean,
+    default: false
+  },
+  isSellerView: {
+    type: Boolean,
+    default: false
+  },
+  sellerTapName: {
+    type: String,
+    default: ''
   }
 })
 
@@ -57,17 +48,20 @@ onMounted(async () => {
   <!-- header start -->
   <div class="d-flex flex-column sticky-top bg-body border-bottom" style="height: 70px;">
     <nav class="navbar">
-      <div class="d-flex gap-2 justify-content-between w-100 container-lg  ">
+      <div class="d-flex gap-2 justify-content-between w-100" :class="props.onlyLogo ? '' : 'container-lg'">
         <div class="d-flex">
           <div class="navbar-brand">
             <Logo />
           </div>
-          <div class="position-relative align-self-end" style="max-width: 400px; width: 100%;">
+          <div class="position-relative align-self-end" style="max-width: 400px; width: 100%;" v-show="!props.onlyLogo">
             <input type="text" class="form-control pe-5" placeholder="공연을 검색하세요.">
             <img src="@/assets/icons/search.png" alt="search icon"
               class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
             </img>
           </div>
+        </div>
+        <div v-if="props.isSellerView" class="align-self-end fs-4 fw-bold">
+          {{ props.sellerTapName }}
         </div>
         <LoginNavBar class=" fs-6" />
       </div>

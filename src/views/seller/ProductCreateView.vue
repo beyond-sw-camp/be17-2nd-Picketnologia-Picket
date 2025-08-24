@@ -132,8 +132,6 @@ const submitForm = async () => {
 <template>
     <div class="d-flex flex-column col py-3">
 
-        <h2 class="mb-4">상품 등록</h2>
-
         <form @submit.prevent="submitForm">
             <div class="row mb-3">
                 <label for="name" class="col-sm-2 col-form-label">상품이름</label>
