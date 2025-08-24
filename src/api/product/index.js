@@ -33,4 +33,24 @@ const getProductDetail = async (req) => {
   return data
 }
 
-export default { getProducts, getProductDetail }
+const addProduct = async (req) => {
+  let data = {}
+  const url = '/api/products'
+
+  await api
+    .post(url, req, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.response.data
+    })
+
+  return data
+}
+
+export default { getProducts, getProductDetail, addProduct }

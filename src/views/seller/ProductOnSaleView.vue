@@ -7,8 +7,6 @@
 
         <div class="d-flex flex-column gap-2 h-100">
             <div class="d-flex justify-content-between align-items-center">
-                <h1 class="fs-4 fw-bolder">진행 중인 공연</h1>
-
                 <div class="d-flex align-self-end gap-2 ">
                     <select class="form-select w-auto">
                         <option selected>최신순</option>

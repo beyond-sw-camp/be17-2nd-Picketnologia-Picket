@@ -1,15 +1,8 @@
 <script setup>
 import { useUserStore } from '@/stores/useUserStore';
-import { ref } from 'vue';
 import api from '@/api/member';
 
 const userStore = useUserStore();
-
-const isDropdownOpen = ref(false);
-
-// const toggleDropdown = () => {
-//     isDropdownOpen.value = !isDropdownOpen.value;
-// };
 
 const logout = async () => {
     const response = await api.logout();
@@ -24,9 +17,9 @@ const logout = async () => {
 <template>
 
     <RouterLink class="link-underline-light link-dark d-flex" to="/login" v-if="!userStore.isLogin">
-        <spann>
+        <span>
             로그인
-        </spann>
+        </span>
         <img src="@/assets/icons/login.png" alt="login icon"></img>
     </RouterLink>
     <div class="dropdown" v-else>
@@ -34,7 +27,7 @@ const logout = async () => {
             aria-expanded="false">
             {{ userStore.nickname }}
         </button>
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu dropdown-menu-end">
             <li>
                 <RouterLink class="link-underline-light link-dark dropdown-item d-flex gap-1" to="/mypage">
                     <img src="@/assets/icons/account.png" alt="mypage icon"></img>
