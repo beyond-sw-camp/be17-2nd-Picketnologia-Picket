@@ -2,7 +2,6 @@
 import { ref, onMounted, reactive } from 'vue'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
-import axios from 'axios'
 import genreAPI from '@/api/genre'
 import productAPI from '@/api/product'
 
@@ -243,14 +242,6 @@ const openDate = reactive({
 // 등록하기 버튼 실행, quill 텍스트 description에 저장
 const submitForm = async () => {
     form.value.description = quill.root.innerText;
-
-    const roundDTO = {
-        startDate: roundOption.startDate,
-        endDate: roundOption.endDate,
-        selectedDays: roundOption.selectedDays.map(day => { return { code: day.code, times: day.times } }),
-        sameTimes: roundOption.sameTimes,
-        manualRounds: roundOption.manualRounds
-    };
 
     // roundDTO를 form.value에 추가
     form.value.roundOption = addRoundOptionToForm();
