@@ -17,8 +17,7 @@ const form = ref({
     startDate: '',
     endDate: '',
     runningTime: null,
-    // sessionDate: '',
-    // sessionTime: null,
+    openDate: '',
     description: '',
     roundOption: {
         startDate: '',
@@ -232,6 +231,15 @@ const addRoundOptionToForm = () => {
     };
 }
 
+// 오픈 예정일 설정
+const openDate = reactive({
+    date: '',
+    time: '',
+    toForm: () => {
+        form.value.openDate = openDate.date + 'T' + openDate.time;
+    }
+})
+
 // 등록하기 버튼 실행, quill 텍스트 description에 저장
 const submitForm = async () => {
     form.value.description = quill.root.innerText;
@@ -246,7 +254,9 @@ const submitForm = async () => {
 
     // roundDTO를 form.value에 추가
     form.value.roundOption = addRoundOptionToForm();
-    // addRoundOptionToForm();
+
+    // 오픈 예정일 형식 변환 후 추가
+    openDate.toForm();
 
     // formData 객체 생성
     const formData = new FormData();
@@ -346,6 +356,16 @@ const submitForm = async () => {
                     <input type="number" class="form-control" id="price" v-model="form.price" />
                 </div>
             </div>
+
+            <!-- 오픈 예정일 start -->
+            <div class="row mb-3">
+                <label for="price" class="col-form-label col-sm-2">티켓 오픈 예정일</label>
+                <div class="col-sm-10 d-flex gap-2">
+                    <input type="date" class="form-control" v-model="openDate.date" />
+                    <input type="time" class="form-control" v-model="openDate.time" />
+                </div>
+            </div>
+            <!-- 오픈 예정일 end -->
 
             <!-- 회차 등록 start -->
             <div class="row mb-3">
