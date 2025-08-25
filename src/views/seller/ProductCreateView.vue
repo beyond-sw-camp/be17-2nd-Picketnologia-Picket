@@ -24,7 +24,8 @@ const form = ref({
         selectedDays: [],
         sameTimes: [],
         manualRounds: []
-    }
+    },
+    seatMap: []
 })
 
 // 파일 업로드를 위한 ref
@@ -249,6 +250,9 @@ const submitForm = async () => {
     // 오픈 예정일 형식 변환 후 추가
     openDate.toForm();
 
+    // 좌석 등급 선택 Map Form에 추가
+    seatMap.toForm();
+
     // formData 객체 생성
     const formData = new FormData();
 
@@ -311,6 +315,9 @@ const seatMap = reactive({
     },
     getSeatGrade: (seat) => {
         return seat.grade ? seat.grade.toLowerCase() : null
+    },
+    toForm: () => {
+        form.value.seatMap = seatMap.seats
     }
 })
 
@@ -329,7 +336,6 @@ const seatGrade = reactive({
         return seatGrade.selectedGrade ? seatGrade.selectedGrade.code : null;
     },
     getGradeCode: (grade) => {
-        console.log(grade.code.toLowerCase())
         return grade.code.toLowerCase();
     }
 })
