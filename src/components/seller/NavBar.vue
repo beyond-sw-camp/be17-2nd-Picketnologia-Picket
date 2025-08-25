@@ -1,8 +1,10 @@
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 const route = useRoute()
+
+const emit = defineEmits(['tabChange'])
 
 const navs = ref([
     {
@@ -43,27 +45,37 @@ const navs = ref([
     }
 ])
 
-const isActive = (to) => {
-    if (route.path == to)
+const isActive = (nav) => {
+    if (route.path == nav.to) {
+        console.log("Active tab changed to:", nav.name)
         return true
+    }
 
     return false
 }
 
+// 클릭 시 emit 호출
+const handleClick = (nav) => {
+    emit('tabChange', nav.name)
+}
+
+onMounted(() => {
+    // 초기 탭 설정
+    emit('tabChange', navs.value[0].name)
+})
 </script>
 
 <template>
-    <div class="col-auto col-md-3 col-xl-2 px-sm-2 bg-light">
+    <div class="col-auto col-md-3 col-xl-2 px-sm-2 border-end position-fixed" style=" width: 200px;">
         <div class="d-flex flex-column align-items-center px-3 pt-2 min-vh-100">
-            <h5 class="mb-3">판매자 메뉴</h5>
             <ul class="nav nav-pills flex-column mb-auto w-100 gap-3">
                 <li class="nav-item" v-for="nav in navs">
-                    <RouterLink :to="nav.to" class="nav-link" :class="[isActive(nav.to) ? 'active' : 'link-dark']">{{
-                        nav.name }}</RouterLink>
+                    <RouterLink :to="nav.to" class="nav-link" @click="handleClick(nav)"
+                        :class="[isActive(nav) ? 'active' : 'link-dark']">
+                        {{ nav.name }}
+                    </RouterLink>
                 </li>
             </ul>
-            <button class="btn fw-bolder fs-5 link-danger mb-3">로그 아웃</button>
-
         </div>
     </div>
 </template>

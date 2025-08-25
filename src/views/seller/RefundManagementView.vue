@@ -8,8 +8,6 @@
 
             <div class="d-flex flex-column gap-2">
 
-                <h1 class="fw-bolder fs-4">환불/취소</h1>
-
                 <!-- 검색 / 정렬 -->
                 <div class="d-flex align-items-center justify-content-between gap-2">
 

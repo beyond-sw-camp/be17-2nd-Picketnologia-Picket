@@ -106,7 +106,7 @@ const router = createRouter({
       component: () => import('@/views/seller/Main.vue'),
       meta: {
         authRequired: true,
-        requiredRole: 'seller',
+        isSeller: true,
       },
       children: [
         {
@@ -158,7 +158,9 @@ router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
 
   const authRequired = to.matched.some((record) => record.meta.authRequired)
-  const requiresToken = to.matched.some((record) => record.meta.requireToken)
+  const requiresToken = to.matched.some((record) => record.meta.requiresToken)
+  const userTypeSeller = to.matched.some((record) => record.meta.isSeller)
+
   const isLogin = userStore.isLogin
 
   // 권한이 필요한데 로그인이 되어 있지 않으면 로그인 페이지로 이동
@@ -171,6 +173,14 @@ router.beforeEach((to, from, next) => {
     const token = to.query.token
     if (!token) {
       next('/login')
+    }
+  }
+
+  // 판매자 전용 페이지에서는 판매자 권한이 필요
+  if (userTypeSeller) {
+    if (!userStore.isSeller) {
+      alert('권한이 없습니다.')
+      next('/')
     }
   }
 
