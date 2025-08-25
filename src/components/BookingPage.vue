@@ -2,6 +2,51 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Stomp from 'stompjs'
+import PortOne from '@portone/browser-sdk/v2'
+
+const productList = ref([])
+
+onMounted(async () => {
+  const data = await api.getProductList()
+  productList.value = data.results.list
+
+  console.log(productList.value)
+})
+
+// paymentId를 얻기 위해 랜덤한 ID 값을 반환하는 메서드
+const randomId = () => {
+  return [...crypto.getRandomValues(new Uint32Array(2))]
+    .map((word) => word.toString(16).padStart(8, '0'))
+    .join('')
+}
+
+const onSumit = async () => {
+  let totalAmount = 0
+  for (let i = 0; i < selectedSeats.value.length; i++) {
+    totalAmount = totalAmount + selectedSeats.value[i].price
+  }
+
+  // const orderName = selectedSeats.value[0].seatname
+
+  const productIdxList = []
+  for (let i = 0; i < selectedSeats.value.length; i++) {
+    productIdxList[i] = selectedSeats.value[i].idx
+  }
+
+  const paymentId = randomId()
+  const payment = await PortOne.requestPayment({
+    storeId: 'store-730b9cdb-6eb8-4cd6-a943-35e3f3d92470',
+    channelKey: 'channel-key-226fbd3b-f977-4f84-a706-f711ac1e7bfd',
+    paymentId,
+    orderName: '상품01',
+    totalAmount: 1000,
+    currency: 'KRW',
+    payMethod: 'CARD',
+    customData: {
+      productIdxList: productIdxList,
+    },
+  })
+}
 
 const router = useRouter()
 
@@ -119,7 +164,7 @@ const deliveryMethod = ref('')
 
 const totalPrice = computed(() => selectedSeats.value.reduce((sum, s) => sum + s.price, 0))
 
-function nextStep() {
+async function nextStep() {
   if (step.value === 1) {
     if (!selectedDate.value) return alert('예매일을 선택하세요.')
     if (!selectedTime.value) return alert('회차를 선택하세요.')
@@ -132,7 +177,8 @@ function nextStep() {
     //    alert('결제를 진행합니다.')
     // 사용자가 '확인'을 누르면 true를 반환하는 confirm 대화상자를 사용합니다.
     if (confirm('결제를 진행하시겠습니까?')) {
-      router.push('/payment/result')
+      // router.push('/payment/result')
+      await onSumit()
     }
   }
 }
