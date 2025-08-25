@@ -80,7 +80,6 @@ onMounted(async () => {
 
 
 const reviewForm = reactive({
-    name: '',
     rating: 0,
     comment: '',
     productId: 0
@@ -101,6 +100,7 @@ const onSubmit = async () => {
         alert("예매자만 후기작성이 가능합니다.");
     }
 }
+
 
 
 
@@ -418,6 +418,7 @@ const formatDate = (dateString) => {
                                         {{ i <= totalRating ? '★' : '☆' }} </span>
                                 </div>
 
+
                                 <div class="h4 m-0 p-0 text-dark">{{ totalRating.toFixed(1) }}</div>
                             </div>
                         </h5>
@@ -461,6 +462,8 @@ const formatDate = (dateString) => {
             </div>
         </div>
     </div>
+
+
 
 
     <div class="container-lg" v-if="isTab(tabs[3].name)">
