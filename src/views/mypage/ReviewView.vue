@@ -1,4 +1,32 @@
 <script setup>
+import review from '@/api/review';
+import { ref } from 'vue';
+
+const reviews = ref([]);
+const startDate = ref('');
+const endDate = ref('');
+
+
+const myPageReview = async () => {
+    const dateInfo = {
+        startDate: startDate.value,
+        endDate: endDate.value
+    }
+    try {
+        const response = await review.userIdxList(dateInfo);
+
+        reviews.value = response.results.map(review => ({
+            ...review,
+            isExpanded: false
+        }));
+
+        if (reviews.value.length == 0) {
+            alert('해당기간에 작성한 리뷰가 없습니다.');
+        }
+    } catch (error) {
+        console.error('리뷰를 불러오는 데 실패했습니다.', error);
+    }
+}
 
 </script>
 
@@ -9,10 +37,10 @@
         <!-- Date Filter -->
         <div class="mb-3 d-flex align-items-center gap-2">
             <span>조회기간:</span>
-            <input type="date" class="form-control form-control-sm" style="max-width: 150px;" />
+            <input type="date" class="form-control form-control-sm" style="max-width: 150px;" v-model="startDate" />
             <span>~</span>
-            <input type="date" class="form-control form-control-sm" style="max-width: 150px;" />
-            <button class="btn btn-outline-primary btn-sm">조회</button>
+            <input type="date" class="form-control form-control-sm" style="max-width: 150px;" v-model="endDate" />
+            <button class="btn btn-outline-primary btn-sm" @click="myPageReview">조회</button>
         </div>
 
         <!-- Review Table -->
@@ -24,24 +52,35 @@
                         <th>작성일시</th>
                         <th>공연명</th>
                         <th>관람일</th>
-                        <th>리뷰 제목</th>
                         <th>리뷰 내용</th>
                         <th>별점</th>
-                        <th>공개 여부</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(review, index) in reviews" :key="index">
-                        <td><small>{{ review.date }}</small></td>
-                        <td><small>{{ review.show }}</small></td>
-                        <td><small>{{ review.viewDate }}</small></td>
-                        <td><small>{{ review.title }}</small></td>
-                        <td><small>{{ review.content }}</small></td>
+                        <td><small>{{ review.createdAt }}</small></td>
+                        <td><small>{{ review.prodcutName }}</small></td>
+                        <td><small>{{ review.createdAt }}</small></td>
                         <td>
-                            <i v-for="i in 5" :key="i"
-                                :class="['fa', i <= review.stars ? 'fa-star text-warning' : 'fa-star-o text-secondary']"></i>
+                            <small v-if="!review.isExpanded">
+                                {{ review.comment.substring(0, 10) }}{{ review.comment.length > 10 ? '...' : '' }}
+                            </small>
+                            <small v-else>
+                                {{ review.comment }}
+                            </small>
+
+
+                            <div v-if="review.comment.length > 10">
+                                <a href="#" @click.prevent="review.isExpanded = !review.isExpanded"
+                                    class="text-decoration-none">
+                                    <small>{{ review.isExpanded ? '접기' : '더보기' }}</small>
+                                </a>
+                            </div>
                         </td>
-                        <td><small>{{ review.public }}</small></td>
+
+                        <td><small>{{ review.rating }}</small></td>
+
+
                     </tr>
                 </tbody>
             </table>
