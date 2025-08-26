@@ -25,7 +25,8 @@ const form = ref({
         sameTimes: [],
         manualRounds: []
     },
-    seatMap: []
+    seatMap: [],
+    seatGrade: []
 })
 
 // 파일 업로드를 위한 ref
@@ -251,7 +252,14 @@ const submitForm = async () => {
     openDate.toForm();
 
     // 좌석 등급 선택 Map Form에 추가
-    seatMap.toForm();
+    seatMapToForm();
+
+    form.value.seatGrade = seatGrade.grades.map((grade) => {
+        return {
+            code: grade.code,
+            price: grade.price
+        }
+    })
 
     // formData 객체 생성
     const formData = new FormData();
@@ -283,43 +291,47 @@ const submitForm = async () => {
 
 const seatMap = reactive({
     seats: [],
-    createSeatMap: (row, col) => {
-
-        if (row > 26) {
-            alert('좌석 행은 최대 26행까지 생성할 수 있습니다.');
-            return;
-        }
-
-        // 좌석 맵 생성 로직
-        seatMap.seats = Array.from(Array(row), () => new Array(col).fill(null));
-        seatMap.seats.forEach((r, rowIndex) => {
-            r.forEach((c, colIndex) => {
-                seatMap.seats[rowIndex][colIndex] = {
-                    name: `${String.fromCharCode(65 + rowIndex)}-${colIndex + 1}`,
-                    grade: null
-                }
-            })
-        })
-    },
-    insertGrade: (seat) => {
-        if (!seatGrade.getSelectedGradeCode()) {
-            alert('등급을 선택하세요.')
-        }
-
-        if (seat.grade === seatGrade.getSelectedGradeCode()) {
-            seat.grade = null
-            return;
-        }
-
-        seat.grade = seatGrade.getSelectedGradeCode();
-    },
-    getSeatGrade: (seat) => {
-        return seat.grade ? seat.grade.toLowerCase() : null
-    },
-    toForm: () => {
-        form.value.seatMap = seatMap.seats
-    }
 })
+
+const getSeatGrade = (seat) => {
+    return seat.grade ? seat.grade.toLowerCase() : null
+}
+
+const seatMapToForm = () => {
+    form.value.seatMap = seatMap.seats
+}
+
+const createSeatMap = (row, col) => {
+
+    if (row > 26) {
+        alert('좌석 행은 최대 26행까지 생성할 수 있습니다.');
+        return;
+    }
+
+    // 좌석 맵 생성 로직
+    seatMap.seats = Array.from(Array(row), () => new Array(col).fill(null));
+    seatMap.seats.forEach((r, rowIndex) => {
+        r.forEach((c, colIndex) => {
+            seatMap.seats[rowIndex][colIndex] = {
+                name: `${String.fromCharCode(65 + rowIndex)}-${colIndex + 1}`,
+                grade: null
+            }
+        })
+    })
+}
+
+const insertGrade = (seat) => {
+    if (!getSelectedGradeCode()) {
+        alert('등급을 선택하세요.')
+    }
+
+    if (seat.grade === getSelectedGradeCode()) {
+        seat.grade = null
+        return;
+    }
+
+    seat.grade = getSelectedGradeCode();
+}
 
 const seatGrade = reactive({
     grades: [
@@ -329,19 +341,22 @@ const seatGrade = reactive({
         { code: 'A', name: 'A석', price: null }
     ],
     selectedGrade: null,
-    selectGrade: (grade) => {
-        seatGrade.selectedGrade = grade;
-    },
-    getSelectedGradeCode: () => {
-        return seatGrade.selectedGrade ? seatGrade.selectedGrade.code : null;
-    },
-    getGradeCode: (grade) => {
-        return grade.code.toLowerCase();
-    }
 })
 
+const selectGrade = (grade) => {
+    seatGrade.selectedGrade = grade;
+}
+
+const getSelectedGradeCode = () => {
+    return seatGrade.selectedGrade ? seatGrade.selectedGrade.code : null;
+}
+
+const getGradeCode = (grade) => {
+    return grade.code.toLowerCase();
+}
+
 onMounted(() => {
-    seatMap.createSeatMap(10, 10);
+    createSeatMap(10, 10);
 })
 </script>
 
@@ -397,8 +412,25 @@ onMounted(() => {
             </div>
             <!-- 공연장 end -->
 
-            <!-- 좌석 별 등급 지정 start -->
+            <!-- 좌석 등급 가격 설정 start -->
             <div class="row mb-3">
+                <label for="venue" class="col-sm-2 col-form-label">좌석 등급 별 가격</label>
+                <div class="col-sm-10">
+                    <div class="d-flex justify-content-between gap-2">
+                        <div v-for="(grade, index) in seatGrade.grades" class="d-flex text-nowrap gap-2">
+                            <div class="fs-4 fw-bold">
+                                {{ grade.name }}
+                            </div>
+                            <input class="form-control" type="number" v-model="grade.price" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 좌석 등급 가격 설정 end -->
+
+
+            <!-- 좌석 별 등급 지정 start -->
+            <div class=" row mb-3">
                 <label class="col-sm-2 col-form-label">좌석 별 등급 지정</label>
                 <div class="col-sm-10">
                     <!-- Button trigger modal -->
@@ -429,9 +461,9 @@ onMounted(() => {
                                         <div class="d-flex gap-2 ">
                                             <div class="form-check" v-for="(grade, index) in seatGrade.grades">
                                                 <input class="form-check-input"
-                                                    :class="[seatGrade.getGradeCode(grade), 'color-box', 'border']"
-                                                    type="radio" name="seatGrade" :id="`grade-${grade.code}`"
-                                                    @click="seatGrade.selectGrade(grade)" />
+                                                    :class="[getGradeCode(grade), 'color-box', 'border']" type="radio"
+                                                    name="seatGrade" :id="`grade-${grade.code}`"
+                                                    @click="selectGrade(grade)" />
                                                 <label class="form-check-label" :class="grade.code"
                                                     :for="`grade-${grade.code}`">
                                                     {{ grade.name }}
@@ -442,8 +474,7 @@ onMounted(() => {
                                             <div class="seat-row" v-for="(row, rowIndex) in seatMap.seats"
                                                 :key="rowIndex">
                                                 <div v-for="(seat, colIndex) in row" :key="colIndex" class="seat"
-                                                    :class="seatMap.getSeatGrade(seat)"
-                                                    @click="seatMap.insertGrade(seat)">
+                                                    :class="getSeatGrade(seat)" @click="insertGrade(seat)">
                                                     {{ seat.name }}
                                                 </div>
                                             </div>
@@ -544,7 +575,8 @@ onMounted(() => {
                                     <li class="list-group-item">매일 회차를 생성하고 싶다면 매일 체크박스를 체크하세요.</li>
                                     <li class="list-group-item">매주 주말에만 공연이 진행된다면, 토요일과 일요일을 선택하세요.</li>
                                     <li class="list-group-item">월요일 선택시 전체 기간 동안 월요일에만 공연이 진행됩니다.</li>
-                                    <li class="list-group-item">매일 회차를 생성하되, 특정 요일을 제외하고 싶다면 공연을 진행하는 요일을 선택하세요.
+                                    <li class="list-group-item">매일 회차를 생성하되, 특정 요일을 제외하고 싶다면 공연을 진행하는 요일을
+                                        선택하세요.
                                         월요일과 수요일을 제외하고 싶다면 그 외의 모든 요일을 체크하시면 됩니다.</li>
                                 </ul>
                                 <div>
@@ -572,7 +604,8 @@ onMounted(() => {
 
                             <ul class=" list-group list-group-flush list-group-numbered">
                                 <li class="list-group-item">요일 별로 회차 시간을 입력하세요.</li>
-                                <li class="list-group-item"><strong>모든 요일 회차 시간 동일</strong>을 체크하시면 선택한 모든 요일을 동일한 회차
+                                <li class="list-group-item"><strong>모든 요일 회차 시간 동일</strong>을 체크하시면 선택한 모든
+                                    요일을 동일한 회차
                                     시간으로 설정 할 수 있습니다.
                                 </li>
                             </ul>
