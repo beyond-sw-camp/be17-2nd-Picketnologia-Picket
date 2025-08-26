@@ -1,120 +1,30 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
 import Stomp from 'stompjs'
 import PortOne from '@portone/browser-sdk/v2'
+import * as bootstrap from 'bootstrap'
 
-const productList = ref([])
+import productAPI from '@/api/product'
 
-onMounted(async () => {
-  const data = await api.getProductList()
-  productList.value = data.results.list
-
-  console.log(productList.value)
-})
-
-// paymentId를 얻기 위해 랜덤한 ID 값을 반환하는 메서드
-const randomId = () => {
-  return [...crypto.getRandomValues(new Uint32Array(2))]
-    .map((word) => word.toString(16).padStart(8, '0'))
-    .join('')
-}
-
-const onSumit = async () => {
-  let totalAmount = 0
-  for (let i = 0; i < selectedSeats.value.length; i++) {
-    totalAmount = totalAmount + selectedSeats.value[i].price
-  }
-
-  // const orderName = selectedSeats.value[0].seatname
-
-  const productIdxList = []
-  for (let i = 0; i < selectedSeats.value.length; i++) {
-    productIdxList[i] = selectedSeats.value[i].idx
-  }
-
-  const paymentId = randomId()
-  const payment = await PortOne.requestPayment({
-    storeId: 'store-730b9cdb-6eb8-4cd6-a943-35e3f3d92470',
-    channelKey: 'channel-key-226fbd3b-f977-4f84-a706-f711ac1e7bfd',
-    paymentId,
-    orderName: '상품01',
-    totalAmount: 1000,
-    currency: 'KRW',
-    payMethod: 'CARD',
-    customData: {
-      productIdxList: productIdxList,
-    },
-  })
-}
-
-const router = useRouter()
-
-const props = defineProps({
-  productId: {
-    type: Number,
-    required: true,
-  },
-})
-
-const productId = ref(props.productId)
-
-const step = ref(1)
-const today = new Date()
-const availableDates = ['2025-07-08', '2025-07-09', '2025-07-10', '2025-07-17', '2025-07-18']
-
-const calendarDates = ref(
-  Array.from({ length: 31 }, (_, i) => {
-    const day = i + 1
-    const fullDate = `2025-07-${String(day).padStart(2, '0')}`
-    return {
-      day,
-      fullDate,
-      isAvailable: availableDates.includes(fullDate),
-      isSelected: false,
-      isToday: fullDate === '2025-07-09',
-    }
-  }),
-)
-
-const selectedDate = ref('')
-const selectedTime = ref('')
-
-function selectDate(date) {
-  if (!date.isAvailable) return
-  calendarDates.value.forEach((d) => (d.isSelected = false))
-  date.isSelected = true
-  selectedDate.value = date.fullDate
-  selectedTime.value = ''
-}
-
-const timeslotData = {
-  '2025-07-08': [{ time: '14:00' }, { time: '19:00' }],
-  '2025-07-09': [{ time: '16:00' }],
-  '2025-07-10': [{ time: '18:00' }],
-  '2025-07-17': [{ time: '15:00' }, { time: '20:00' }],
-  '2025-07-18': [{ time: '17:00' }],
-}
-
-const currentDayTimeslots = computed(() => timeslotData[selectedDate.value] || [])
-
-const seats = Array.from({ length: 100 }, (_, i) => {
-  let type = 'A'
-  if (i < 10) type = 'VIP'
-  else if (i < 20) type = 'R'
-  else if (i < 60) type = 'S'
-  return {
-    name: `A${i + 1}`,
-    type,
-    price: type === 'VIP' ? 88000 : type === 'R' ? 66000 : 44000,
-  }
-})
-
-const socket = ref(null)
-
+// === 상태 변수 및 라우터 ===
 const route = useRoute()
-const eventIdx = route.params.id
+const eventIdx = route.params.id // URL에서 상품 ID 가져오기
 
+const productDetail = ref(null) // 상품 상세 정보
+const availableDatesResponse = ref([]) // 백엔드에서 받아온 회차 날짜 리스트
+const calendarDates = ref([]) // 달력에 표시될 날짜 배열
+const selectedDate = ref('') // 사용자가 선택한 날짜
+const selectedTime = ref('') // 사용자가 선택한 회차 시간
+const selectedSeats = ref([]) // 사용자가 선택한 좌석 배열
+const disabledSeats = ref([]) // 이미 예매된 좌석 (소켓 통신으로 업데이트)
+const deliveryMethod = ref('') // 수령 방법
+const step = ref(1) // 예매 절차 단계 (1, 2, 3)
+const seats = ref([]) // 좌석 데이터 (전체)
+
+// === 웹소켓 연결 ===
+const socket = ref(null)
 const connectWebSocket = () => {
   const ws = new WebSocket('ws://localhost:8080/websocket')
   const client = Stomp.over(ws)
@@ -122,48 +32,151 @@ const connectWebSocket = () => {
   client.connect(
     {},
     (frame) => {
+      // 채널 구독(by.상품id)
       client.subscribe(`/product/${eventIdx}`, (msg) => {
         const receivedSeat = msg.body
-
-        // 중복 방지하고 disabledSeats에 추가
+        // 이미 선택된 좌석이면 음영 처리
         if (!disabledSeats.value.includes(receivedSeat)) {
           disabledSeats.value.push(receivedSeat)
         }
-
         console.log('음영 처리 좌석 추가됨:', receivedSeat)
       })
     },
-    (err) => {},
+    (err) => {
+      console.error('웹소켓 연결 실패:', err)
+    },
   )
 }
 
-const selectedSeats = ref([])
+// === API 호출 ===
+const api = {
+  getProductDetail: async (id) => {
+    const req = {
+      productId: id,
+    }
+    const response = await productAPI.getProductDetail(req)
+    return response.results
+  },
 
-// 음영 처리할 좌석 목록
-const disabledSeats = ref([])
+  getAvailableDates: async (id) => {
+    const req = {
+      id: id,
+    }
+    const response = await productAPI.getAvailableDates(req)
+    return response.results
+  },
+}
 
-function toggleSeat(seat) {
-  // 먼저 음영 처리된 좌석인지 확인 후 무시
-  if (disabledSeats.value.includes(seat.name)) {
-    return
+// === 컴포넌트 마운트 시 데이터 로드 ===
+onMounted(() => {
+  // 컴포넌트 마운트 시 좌석 정보만 초기화
+  seats.value = Array.from({ length: 100 }, (_, i) => {
+    let type = 'A'
+    let price = 44000
+    if (i < 10) {
+      type = 'VIP'
+      price = 88000
+    } else if (i < 20) {
+      type = 'R'
+      price = 66000
+    } else if (i < 60) {
+      type = 'S'
+      price = 44000
+    }
+    return {
+      idx: i + 1,
+      name: `A${i + 1}`,
+      type: type,
+      price: price,
+    }
+  })
+})
+
+// === 메서드 ===
+// 모달 열기 및 데이터 로드
+async function openBookingModal() {
+  try {
+    // 1. 웹소켓 연결
+    connectWebSocket()
+
+    // 2. 상품 상세정보 로드
+    productDetail.value = await api.getProductDetail(eventIdx)
+
+    // 3. 일정 및 회차 정보 로드
+    const datesData = await api.getAvailableDates(eventIdx)
+
+    // **수정된 부분: datesData가 유효한지 확인 후 할당**
+    if (datesData && datesData.length > 0) {
+      availableDatesResponse.value = datesData
+
+      // 4. 달력 구성
+      const firstAvailableDate = availableDatesResponse.value[0].date
+      const [year, month] = firstAvailableDate.split('-').map(Number)
+      const daysInMonth = new Date(year, month, 0).getDate()
+      const baseDate = `${year}-${String(month).padStart(2, '0')}`
+      const today = new Date().toISOString().slice(0, 10)
+
+      calendarDates.value = Array.from({ length: daysInMonth }, (_, i) => {
+        const day = i + 1
+        const fullDate = `${baseDate}-${String(day).padStart(2, '0')}`
+        const dateInfo = availableDatesResponse.value.find((d) => d.date === fullDate)
+
+        return {
+          day: day,
+          fullDate: fullDate,
+          isAvailable: !!dateInfo, // 회차 정보가 있으면 예매 가능
+          isSelected: false,
+          isToday: fullDate === today,
+        }
+      })
+    } else {
+      // 데이터가 없거나 유효하지 않을 때의 처리
+      console.log('백엔드에서 유효한 회차 정보를 받지 못했습니다. 달력을 생성하지 않습니다.')
+      availableDatesResponse.value = []
+      calendarDates.value = []
+    }
+
+    // 부트스트랩 모달 열기
+    const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'))
+    bookingModal.show()
+  } catch (error) {
+    console.error('모달 열기 및 데이터 로드 중 오류 발생:', error)
+    // 사용자에게 오류 메시지 표시
+    alert('예매 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
   }
+}
 
+// 선택된 날짜의 회차 목록
+const currentDayTimeslots = computed(() => {
+  const selected = availableDatesResponse.value.find((d) => d.date === selectedDate.value)
+  return selected ? selected.roundTimes.map((rt) => ({ time: rt.times.slice(0, 5) })) : []
+})
+
+// 선택된 좌석의 총 가격
+const totalPrice = computed(() => selectedSeats.value.reduce((sum, s) => sum + s.price, 0))
+
+// 날짜 선택
+function selectDate(date) {
+  if (!date.isAvailable) return // 예매 불가능한 날짜는 선택 안 됨
+  calendarDates.value.forEach((d) => (d.isSelected = false))
+  date.isSelected = true
+  selectedDate.value = date.fullDate
+  selectedTime.value = '' // 날짜 변경 시 회차 초기화
+}
+
+// 좌석 선택/해제
+function toggleSeat(seat) {
+  if (disabledSeats.value.includes(seat.name)) return
   const idx = selectedSeats.value.findIndex((s) => s.name === seat.name)
-  if (idx >= 0) {
-    // 취소했을때도 메세지 전달되어야함
-    selectedSeats.value.splice(idx, 1)
-  } else {
+  if (idx >= 0) selectedSeats.value.splice(idx, 1)
+  else {
     selectedSeats.value.push(seat)
-    // 공연번호로 좌석번호를 서버로 전송하는 메소드(by. 웹소켓)
-    console.log('메시지 보내기')
+    // 선택된 좌석 정보를 웹소켓으로 전송
     socket.value.send(`/order/event/${eventIdx}`, {}, seat.name)
   }
 }
 
-const deliveryMethod = ref('')
-
-const totalPrice = computed(() => selectedSeats.value.reduce((sum, s) => sum + s.price, 0))
-
+// 다음 단계로 이동
 async function nextStep() {
   if (step.value === 1) {
     if (!selectedDate.value) return alert('예매일을 선택하세요.')
@@ -174,54 +187,53 @@ async function nextStep() {
     step.value++
   } else if (step.value === 3) {
     if (!deliveryMethod.value) return alert('수령 방식을 선택하세요.')
-    //    alert('결제를 진행합니다.')
-    // 사용자가 '확인'을 누르면 true를 반환하는 confirm 대화상자를 사용합니다.
-    if (confirm('결제를 진행하시겠습니까?')) {
-      // router.push('/payment/result')
-      await onSumit()
-    }
+    if (confirm('결제를 진행하시겠습니까?')) await onSubmit()
   }
 }
 
+// 이전 단계로 이동
 function prevStep() {
   if (step.value > 1) step.value--
+}
+
+// 결제 ID 생성
+const randomId = () => {
+  return [...crypto.getRandomValues(new Uint32Array(2))]
+    .map((word) => word.toString(16).padStart(8, '0'))
+    .join('')
+}
+
+// 결제 요청
+const onSubmit = async () => {
+  const totalAmount = totalPrice.value
+  const productIdxList = selectedSeats.value.map((s) => s.idx)
+  const paymentId = randomId()
+  await PortOne.requestPayment({
+    storeId: 'store-730b9cdb-6eb8-4cd6-a943-35e3f3d92470',
+    channelKey: 'channel-key-226fbd3b-f977-4f84-a706-f711ac1e7bfd',
+    paymentId: paymentId,
+    orderName: productDetail.value.name,
+    totalAmount: totalAmount,
+    currency: 'KRW',
+    payMethod: 'CARD',
+    customData: { productIdxList },
+  })
 }
 </script>
 
 <template>
-  <!-- 예매하기 버튼 -->
-  <button
-    @click="connectWebSocket"
-    type="button"
-    class="btn btn-primary btn-lg shadow"
-    data-bs-toggle="modal"
-    data-bs-target="#bookingModal"
-  >
+  <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow">
     예매하기
   </button>
 
-  <!-- 모달창 -->
-  <div
-    class="modal fade"
-    id="bookingModal"
-    tabindex="-1"
-    aria-labelledby="bookingModalLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="bookingModalLabel">티켓 예매</h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="닫기"
-          ></button>
+          <h5 class="modal-title">티켓 예매</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-
         <div class="modal-body">
-          <!-- 단계 표시 -->
           <div class="steps mb-3">
             <div :class="['step', { active: step === 1 }]" @click="step = 1">
               Step 1<br />날짜 및 회차
@@ -234,7 +246,6 @@ function prevStep() {
             </div>
           </div>
 
-          <!-- Step 1 -->
           <div v-show="step === 1" class="step-content">
             <h4>예매일 선택</h4>
             <div class="calendar-grid">
@@ -262,10 +273,8 @@ function prevStep() {
             </select>
           </div>
 
-          <!-- Step 2 -->
           <div v-show="step === 2" class="step-content">
             <h4>좌석 선택 (총 100석)</h4>
-            <!-- 좌석 구분 및 가격 안내 -->
             <div class="seat-legend mb-3 d-flex gap-3">
               <div class="legend-item vip">
                 <div class="color-box vip"></div>
@@ -284,7 +293,6 @@ function prevStep() {
                 A석 - 44,000원
               </div>
             </div>
-
             <div class="seat-grid">
               <div
                 v-for="seat in seats"
@@ -304,21 +312,19 @@ function prevStep() {
             </div>
           </div>
 
-          <!-- Step 3 -->
           <div v-show="step === 3" class="step-content">
             <h4>수령 방법</h4>
-            <label>
-              <input type="radio" v-model="deliveryMethod" value="현장 수령" /> 현장 수령
-            </label>
-            <label class="ms-3">
-              <input type="radio" v-model="deliveryMethod" value="QR 코드" /> QR 코드
-            </label>
+            <label
+              ><input type="radio" v-model="deliveryMethod" value="현장 수령" /> 현장 수령</label
+            >
+            <label class="ms-3"
+              ><input type="radio" v-model="deliveryMethod" value="QR 코드" /> QR 코드</label
+            >
             <p><input type="text" class="form-control" placeholder="이름" /></p>
             <p><input type="text" class="form-control" placeholder="긴급 연락처" /></p>
             <p><input type="text" class="form-control" placeholder="e-mail" /></p>
           </div>
 
-          <!-- 예매 요약 -->
           <div class="summary mt-4 border-top pt-3">
             <h5>예매 요약</h5>
             <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
@@ -330,13 +336,13 @@ function prevStep() {
             <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p>
             <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
           </div>
-        </div>
 
-        <div class="modal-footer">
-          <button class="btn btn-secondary" @click="prevStep" :disabled="step === 1">이전</button>
-          <button class="btn btn-primary" @click="nextStep">
-            {{ step === 3 ? '결제하기' : '다음' }}
-          </button>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="prevStep" :disabled="step === 1">이전</button>
+            <button class="btn btn-primary" @click="nextStep">
+              {{ step === 3 ? '결제하기' : '다음' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -344,6 +350,7 @@ function prevStep() {
 </template>
 
 <style scoped>
+/* CSS 변경 없음 */
 .steps {
   display: flex;
   justify-content: center;
@@ -440,6 +447,7 @@ function prevStep() {
 
 .color-box.a {
   background-color: #ddd;
+  color: #555;
 }
 
 .seat-grid {
