@@ -72,14 +72,14 @@ watch(
     }
 )
 
-onMounted(async () => {
-    const response = await api.getProducts()
-    if (response.success) {
-        products.value = response.results.productList
-    } else {
-        products.value = []
-    }
-})
+// onMounted(async () => {
+//     const response = await api.getProducts()
+//     if (response.success) {
+//         products.value = response.results.productList
+//     } else {
+//         products.value = []
+//     }
+// })
 
 </script>
 
@@ -120,11 +120,10 @@ onMounted(async () => {
                 </option>
             </select>
         </div>
-        <div class="row row-cols-5">
+        <!-- <div class="row row-cols-5">
             <div class=" col mb-4" v-for="product, index in products">
                 <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
                     <div class="card h-100">
-                        <!-- <img :src="'https://picsum.photos/450/60' + index" class="card-img-top"> -->
                         <img :src="product.posterUrl" class="card-img-top" style="width: 100%; height: 400px;">
                         <div class="card-body d-flex flex-column justify-content-between">
                             <h5 class="card-title">{{ product.title }}</h5>
@@ -137,7 +136,7 @@ onMounted(async () => {
                     </div>
                 </RouterLink>
             </div>
-        </div>
+        </div> -->
     </section>
     <!-- product list end -->
 </template>
