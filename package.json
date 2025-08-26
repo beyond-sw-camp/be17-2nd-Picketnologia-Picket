@@ -10,9 +10,11 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
     "@portone/browser-sdk": "^0.1.0",
     "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
+    "js-cookie": "^3.0.5",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
     "quill": "^2.0.3",

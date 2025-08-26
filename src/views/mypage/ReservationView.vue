@@ -1,4 +1,9 @@
 <script setup>
+import { useUserStore } from '@/stores/useUserStore';
+import review from '@/api/review';
+
+const userStore = useUserStore();
+const ad = review.userIdxList
 
 </script>
 
@@ -11,7 +16,7 @@
             <input type="date" v-model="startDate" class="form-control form-control-sm" style="max-width: 150px;" />
             <span>~</span>
             <input type="date" v-model="endDate" class="form-control form-control-sm" style="max-width: 150px;" />
-            <button class="btn btn-outline-primary btn-sm" @click="filterBookings">조회</button>
+            <button class="btn btn-outline-primary btn-sm" @click=ad>조회</button>
         </div>
 
         <div class="table-responsive">
