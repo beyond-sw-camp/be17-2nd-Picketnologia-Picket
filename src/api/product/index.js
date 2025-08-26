@@ -53,4 +53,21 @@ const addProduct = async (req) => {
   return data
 }
 
-export default { getProducts, getProductDetail, addProduct }
+const getAvailableDates = async (req) => {
+  let data = {}
+  const url = `/api/round?idx=${req.id}`
+
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.data
+    })
+
+  return data
+}
+
+
+export default { getProducts, getProductDetail, addProduct, getAvailableDates }
