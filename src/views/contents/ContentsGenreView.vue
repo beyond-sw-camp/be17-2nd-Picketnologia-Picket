@@ -1,9 +1,11 @@
 <script setup>
 import { useRoute } from 'vue-router';
-import contentsApi from '@/api/contents';
+import contentsAPI from '@/api/contents';
+import productAPI from '@/api/product'
 import { ref, watch, onMounted } from 'vue';
 import RegionSelector from '@/components/selector/RegionSelector.vue';
 import SortOptionSelector from '@/components/selector/SortOptionSelector.vue';
+import Observer from '@/components/Observer.vue';
 
 const route = useRoute();
 
@@ -20,6 +22,16 @@ const products = ref([
     }
 ])
 
+const pageInfo = ref({
+    currentPage: null,
+    totalPage: null
+});
+
+const incCurrentPage = () => {
+    pageInfo.value.currentPage = pageInfo.value.currentPage + 1;
+    return pageInfo.value.currentPage
+}
+
 const upcomingPerformances = ref([
     {
         idx: 1,
@@ -30,9 +42,13 @@ const upcomingPerformances = ref([
 ])
 
 const getContents = async (req) => {
-    const response = await contentsApi.getContentsByGenre(req)
+    const response = await contentsAPI.getContentsByGenre(req)
     if (response.success) {
         products.value = response.results.products
+
+        pageInfo.value.currentPage = response.results.currentPage
+        pageInfo.value.totalPage = response.results.totalPage
+
         upcomingPerformances.value = response.results.upcomingPerformances
     } else {
         products.value = []
@@ -54,6 +70,26 @@ onMounted(async () => {
 
     await getContents(req)
 })
+
+const loadMore = async () => {
+    if (pageInfo.value.currentPage >= pageInfo.value.totalPage) {
+        return;
+    }
+
+    const req = {
+        genre: route.params.code,
+        page: incCurrentPage()
+    }
+
+    const response = await productAPI.getProducts(req)
+    if (response.success) {
+        const addProducts = response.results.products
+        pageInfo.value.currentPage = response.results.currentPage
+
+        products.value.push(...addProducts)
+    }
+
+}
 </script>
 
 <template>
@@ -121,13 +157,10 @@ onMounted(async () => {
                         </div>
                     </RouterLink>
                 </div>
+                <Observer @show="loadMore" />
             </div>
         </section>
     </div>
-
-
-
-
 </template>
 
 <style scoped></style>
