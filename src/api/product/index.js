@@ -69,5 +69,21 @@ const getAvailableDates = async (req) => {
   return data
 }
 
+const getSeatDates = async (req) => {
+  let data = {}
+  const url = `/api/seat-info?product=${req.productId}`
 
-export default { getProducts, getProductDetail, addProduct, getAvailableDates }
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.data
+    })
+
+  return data
+}
+
+
+export default { getProducts, getProductDetail, addProduct, getAvailableDates, getSeatDates }
