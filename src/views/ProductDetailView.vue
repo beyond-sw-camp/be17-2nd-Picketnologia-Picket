@@ -3,11 +3,26 @@ import { onMounted, ref, reactive } from 'vue';
 import { useRoute } from 'vue-router';
 import api from '@/api/product'
 import review from '@/api/review';
-
+import { useUserStore } from '@/stores/useUserStore';
 import BookingPage from '@/components/BookingPage.vue';
+import router from '@/router';
+
 
 const route = useRoute()
+const userStore = useUserStore();
 
+const loginCheck = () => {
+
+    if (!userStore.isLogin) {
+
+        const result = confirm("비회원으로는 작성이 불가능합니다. 로그인하시겠습니까?");
+
+
+        if (result) {
+            router.push('/login');
+        }
+    }
+}
 const tabs = ref([
     {
         name: '상품 소개'
@@ -65,7 +80,6 @@ onMounted(async () => {
 
 
 const reviewForm = reactive({
-    name: '',
     rating: 0,
     comment: '',
     productId: 0
@@ -83,9 +97,10 @@ const onSubmit = async () => {
         }
     } catch (error) {
         console.error('Submit error:', error);
-        alert("요청 처리 중 오류가 발생했습니다.");
+        alert("예매자만 후기작성이 가능합니다.");
     }
 }
+
 
 
 
@@ -126,6 +141,7 @@ const formatDate = (dateString) => {
     }
     return '';
 };
+
 </script>
 
 <template>
@@ -332,11 +348,7 @@ const formatDate = (dateString) => {
                 <div class="card-body">
                     <h5 class="card-title">후기 작성하기</h5>
                     <form @submit.prevent="onSubmit">
-                        <div class="form-group">
-                            <label for="reviewWriter">작성자</label>
-                            <input type="text" class="form-control" id="reviewWriter" v-model="reviewForm.name"
-                                placeholder="이름을 입력하세요">
-                        </div>
+
 
                         <div class="form-group">
                             <label>평점</label>
@@ -362,7 +374,7 @@ const formatDate = (dateString) => {
                         <div class="form-group">
                             <label for="reviewContent">내용</label>
                             <textarea class="form-control" id="reviewContent" rows="4" placeholder="후기를 남겨주세요"
-                                v-model="reviewForm.comment" required></textarea>
+                                v-model="reviewForm.comment" @click="loginCheck" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">등록하기</button>
                     </form>
@@ -405,6 +417,7 @@ const formatDate = (dateString) => {
                                     <span v-for="i in 5" :key="i">
                                         {{ i <= totalRating ? '★' : '☆' }} </span>
                                 </div>
+
 
                                 <div class="h4 m-0 p-0 text-dark">{{ totalRating.toFixed(1) }}</div>
                             </div>
@@ -449,6 +462,8 @@ const formatDate = (dateString) => {
             </div>
         </div>
     </div>
+
+
 
 
     <div class="container-lg" v-if="isTab(tabs[3].name)">

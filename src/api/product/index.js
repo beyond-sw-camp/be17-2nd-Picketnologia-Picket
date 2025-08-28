@@ -1,17 +1,19 @@
 import api from '@/plugins/axiosInterceptor'
 
-const getProducts = async () => {
+const getProducts = async (req) => {
   let data = {}
 
-  let url = '/api/product/list'
+  let url = '/api/products'
 
   await api
-    .get(url)
+    .get(url, {
+      params: req,
+    })
     .then((res) => {
       data = res.data
     })
     .catch((error) => {
-      data = error.data
+      data = error.response.data
     })
 
   return data

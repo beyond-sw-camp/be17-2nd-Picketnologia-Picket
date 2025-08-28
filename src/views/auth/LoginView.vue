@@ -16,6 +16,7 @@ const login = async () => {
     const response = await api.memberLogin(loginUser);
     if (response.success) {
         userStore.login(response.results);
+        localStorage.setItem('is_logged_in', 'true');
         router.push('/');
     } else {
         alert('로그인 실패: ' + response.message);
