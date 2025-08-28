@@ -8,7 +8,6 @@ import * as bootstrap from 'bootstrap'
 
 import productAPI from '@/api/product'
 
-// === 상태 변수 및 라우터 ===
 const route = useRoute()
 const eventIdx = route.params.id // URL에서 상품 ID 가져오기
 
@@ -17,11 +16,15 @@ const availableDatesResponse = ref([]) // 백엔드에서 받아온 회차 날�
 const calendarDates = ref([]) // 달력에 표시될 날짜 배열
 const selectedDate = ref('') // 사용자가 선택한 날짜
 const selectedTime = ref('') // 사용자가 선택한 회차 시간
+const seatGrades = ref([]) // 좌석 등급 배열
 const selectedSeats = ref([]) // 사용자가 선택한 좌석 배열
 const disabledSeats = ref([]) // 이미 예매된 좌석 (소켓 통신으로 업데이트)
 const deliveryMethod = ref('') // 수령 방법
 const step = ref(1) // 예매 절차 단계 (1, 2, 3)
 const seats = ref([]) // 좌석 데이터 (전체)
+
+const isLoading = ref(true) // 데이터 로딩 상태
+const loadError = ref(null) // 데이터 로딩 오류 메시지
 
 // === 웹소켓 연결 ===
 const socket = ref(null)
@@ -63,36 +66,49 @@ const api = {
       id: id,
     }
     const response = await productAPI.getAvailableDates(req)
+    console.log(response)
+
+    return response.results
+  },
+
+  getSeatDates: async (id) => {
+    const req = {
+      productId: id,
+    }
+    const response = await productAPI.getSeatDates(req)
     return response.results
   },
 }
 
 // === 컴포넌트 마운트 시 데이터 로드 ===
-onMounted(() => {
-  // 컴포넌트 마운트 시 좌석 정보만 초기화
-  seats.value = Array.from({ length: 100 }, (_, i) => {
-    let type = 'A'
-    let price = 44000
-    if (i < 10) {
-      type = 'VIP'
-      price = 88000
-    } else if (i < 20) {
-      type = 'R'
-      price = 66000
-    } else if (i < 60) {
-      type = 'S'
-      price = 44000
+onMounted(async () => {
+  try {
+    isLoading.value = true // 로딩 상태 시작
+    // 1. 좌석 등급 및 좌석 맵 정보 불러오기
+    const seatInfoResponse = await api.getSeatDates(eventIdx)
+    console.log('API 응답에서 가져온 seatInfoResponse:', seatInfoResponse) // 디버깅용
+
+    // seatInfoResponse.seatGrades와 seatInfoResponse.seatMap
+    if (seatInfoResponse && seatInfoResponse.seatGrades && seatInfoResponse.seatMap) {
+      // 2. 좌석 등급 정보 할당
+      seatGrades.value = seatInfoResponse.seatGrades
+
+      // 3. 좌석 맵 데이터 할당 (2차원 배열을 1차원 배열로 변환)
+      const allSeats = seatInfoResponse.seatMap.flat()
+      seats.value = allSeats
+      console.log('좌석 맵 데이터 불러오기 성공:', seats.value)
+    } else {
+      console.error('좌석 등급 또는 좌석 맵 정보를 불러오는 데 실패했습니다.')
+      loadError.value = '좌석 정보를 불러올 수 없습니다. 다시 시도해 주세요.'
     }
-    return {
-      idx: i + 1,
-      name: `A${i + 1}`,
-      type: type,
-      price: price,
-    }
-  })
+  } catch (error) {
+    console.error('초기 데이터 로드 실패:', error)
+    loadError.value = '서버 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+  } finally {
+    isLoading.value = false // 로딩 상태 종료
+  }
 })
 
-// === 메서드 ===
 // 모달 열기 및 데이터 로드
 async function openBookingModal() {
   try {
@@ -105,7 +121,7 @@ async function openBookingModal() {
     // 3. 일정 및 회차 정보 로드
     const datesData = await api.getAvailableDates(eventIdx)
 
-    // **수정된 부분: datesData가 유효한지 확인 후 할당**
+    // datesData가 유효한지 확인 후 할당
     if (datesData && datesData.length > 0) {
       availableDatesResponse.value = datesData
 
@@ -142,7 +158,7 @@ async function openBookingModal() {
   } catch (error) {
     console.error('모달 열기 및 데이터 로드 중 오류 발생:', error)
     // 사용자에게 오류 메시지 표시
-    alert('예매 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
+    console.log('예매 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
   }
 }
 
@@ -153,7 +169,9 @@ const currentDayTimeslots = computed(() => {
 })
 
 // 선택된 좌석의 총 가격
-const totalPrice = computed(() => selectedSeats.value.reduce((sum, s) => sum + s.price, 0))
+const totalPrice = computed(() =>
+  selectedSeats.value.reduce((sum, s) => sum + s.priceInfo.price, 0),
+)
 
 // 날짜 선택
 function selectDate(date) {
@@ -166,10 +184,12 @@ function selectDate(date) {
 
 // 좌석 선택/해제
 function toggleSeat(seat) {
+  // disabledSeats는 좌석 이름(name)을 포함하므로 name으로 비교
   if (disabledSeats.value.includes(seat.name)) return
   const idx = selectedSeats.value.findIndex((s) => s.name === seat.name)
-  if (idx >= 0) selectedSeats.value.splice(idx, 1)
-  else {
+  if (idx >= 0) {
+    selectedSeats.value.splice(idx, 1)
+  } else {
     selectedSeats.value.push(seat)
     // 선택된 좌석 정보를 웹소켓으로 전송
     socket.value.send(`/order/event/${eventIdx}`, {}, seat.name)
@@ -206,7 +226,7 @@ const randomId = () => {
 // 결제 요청
 const onSubmit = async () => {
   const totalAmount = totalPrice.value
-  const productIdxList = selectedSeats.value.map((s) => s.idx)
+  const productIdxList = selectedSeats.value.map((s) => s.name)
   const paymentId = randomId()
   await PortOne.requestPayment({
     storeId: 'store-730b9cdb-6eb8-4cd6-a943-35e3f3d92470',
@@ -235,15 +255,9 @@ const onSubmit = async () => {
         </div>
         <div class="modal-body">
           <div class="steps mb-3">
-            <div :class="['step', { active: step === 1 }]" @click="step = 1">
-              Step 1<br />날짜 및 회차
-            </div>
-            <div :class="['step', { active: step === 2 }]" @click="step = 2">
-              Step 2<br />좌석 선택
-            </div>
-            <div :class="['step', { active: step === 3 }]" @click="step = 3">
-              Step 3<br />수령 방법
-            </div>
+            <div :class="['step', { active: step === 1 }]">Step 1<br />날짜 및 회차</div>
+            <div :class="['step', { active: step === 2 }]">Step 2<br />좌석 선택</div>
+            <div :class="['step', { active: step === 3 }]">Step 3<br />수령 방법</div>
           </div>
 
           <div v-show="step === 1" class="step-content">
@@ -274,40 +288,50 @@ const onSubmit = async () => {
           </div>
 
           <div v-show="step === 2" class="step-content">
-            <h4>좌석 선택 (총 100석)</h4>
-            <div class="seat-legend mb-3 d-flex gap-3">
-              <div class="legend-item vip">
-                <div class="color-box vip"></div>
-                VIP석 - 88,000원
+            <!-- 좌석 로딩 중 메시지 -->
+            <div v-if="isLoading" class="text-center">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
               </div>
-              <div class="legend-item r">
-                <div class="color-box r"></div>
-                R석 - 66,000원
-              </div>
-              <div class="legend-item s">
-                <div class="color-box s"></div>
-                S석 - 44,000원
-              </div>
-              <div class="legend-item a">
-                <div class="color-box a"></div>
-                A석 - 44,000원
-              </div>
+              <p class="mt-2">좌석 정보를 불러오는 중...</p>
             </div>
-            <div class="seat-grid">
-              <div
-                v-for="seat in seats"
-                :key="seat.name"
-                :class="[
-                  'seat',
-                  seat.type.toLowerCase(),
-                  {
-                    selected: selectedSeats.includes(seat),
-                    disabled: disabledSeats.includes(seat.name),
-                  },
-                ]"
-                @click="toggleSeat(seat)"
-              >
-                {{ seat.name }}
+            <!-- 좌석 로드 오류 메시지 -->
+            <div v-else-if="loadError" class="alert alert-danger">
+              {{ loadError }}
+            </div>
+            <!-- 좌석 목록이 비어 있을 때 메시지 -->
+            <div v-else-if="seats.length === 0" class="alert alert-info">
+              <p>좌석 정보가 없습니다.</p>
+            </div>
+            <div v-else>
+              <h4>좌석 선택 (총 {{ seats.length }}석)</h4>
+              <div class="seat-legend mb-3 d-flex gap-3">
+                <div
+                  v-for="grade in seatGrades"
+                  :key="grade.grade"
+                  class="legend-item"
+                  :class="grade.grade.toLowerCase()"
+                >
+                  <div class="color-box" :class="grade.grade.toLowerCase()"></div>
+                  {{ grade.grade }}석 - {{ grade.priceInfo.priceFormat }}
+                </div>
+              </div>
+              <div class="seat-grid">
+                <div
+                  v-for="seat in seats"
+                  :key="seat.name"
+                  :class="[
+                    'seat',
+                    seat.grade.toLowerCase(),
+                    {
+                      selected: selectedSeats.some((s) => s.name === seat.name),
+                      disabled: disabledSeats.includes(seat.name),
+                    },
+                  ]"
+                  @click="toggleSeat(seat)"
+                >
+                  {{ seat.name }}
+                </div>
               </div>
             </div>
           </div>
@@ -350,7 +374,6 @@ const onSubmit = async () => {
 </template>
 
 <style scoped>
-/* CSS 변경 없음 */
 .steps {
   display: flex;
   justify-content: center;
