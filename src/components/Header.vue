@@ -35,7 +35,6 @@ const props = defineProps({
 
 onMounted(async () => {
   const response = await genreApi.getGenres()
-  console.log(response)
   if (response.success) {
     genres.value = response.results.genres
   }

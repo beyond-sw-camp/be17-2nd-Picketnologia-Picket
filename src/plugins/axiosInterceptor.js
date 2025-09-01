@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useUserStore } from '@/stores/useUserStore'
 
 axios.defaults.withCredentials = true
 
@@ -25,6 +26,13 @@ api.interceptors.response.use(
   },
   (error) => {
     console.log('응답 받을 때 에러 처리')
+
+    const userStore = useUserStore()
+
+    if (error.response.data.code == 30008) {
+      userStore.logout()
+    }
+
     return Promise.reject(error)
   },
 )

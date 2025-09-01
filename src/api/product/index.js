@@ -1,17 +1,19 @@
 import api from '@/plugins/axiosInterceptor'
 
-const getProducts = async () => {
+const getProducts = async (req) => {
   let data = {}
 
-  let url = '/api/product/list'
+  let url = '/api/products'
 
   await api
-    .get(url)
+    .get(url, {
+      params: req,
+    })
     .then((res) => {
       data = res.data
     })
     .catch((error) => {
-      data = error.data
+      data = error.response.data
     })
 
   return data
@@ -69,5 +71,21 @@ const getAvailableDates = async (req) => {
   return data
 }
 
+const getSeatDates = async (req) => {
+  let data = {}
+  const url = `/api/seat-info?product=${req.productId}`
 
-export default { getProducts, getProductDetail, addProduct, getAvailableDates }
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.data
+    })
+
+  return data
+}
+
+
+export default { getProducts, getProductDetail, addProduct, getAvailableDates, getSeatDates }
