@@ -123,7 +123,6 @@ const loadReviews = async (page = 1) => {
         } else {
             reviews.value = [];
             totalCount.value = 0;
-            averageRating.value = 0;
         }
     } catch (error) {
         console.error('리뷰 로딩 오류:', error);
