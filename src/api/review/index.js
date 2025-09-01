@@ -18,7 +18,7 @@ const register = async (req) => {
 const getReviews = async (page = 1, size = 5) => {
     try {
         const backendPage = page - 1;
-        const response = await api.get(`/api/listPaging?page=${backendPage}&size=${size}`);
+        const response = await api.get(`/api/reviews/listPaging?page=${backendPage}&size=${size}`);
 
         return response.data.results;
     } catch (error) {
