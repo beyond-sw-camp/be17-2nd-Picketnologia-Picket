@@ -2,8 +2,7 @@
 import { useUserStore } from '@/stores/useUserStore';
 import review from '@/api/review';
 
-const userStore = useUserStore();
-const ad = review.userIdxList
+
 
 </script>
 
@@ -16,7 +15,7 @@ const ad = review.userIdxList
             <input type="date" v-model="startDate" class="form-control form-control-sm" style="max-width: 150px;" />
             <span>~</span>
             <input type="date" v-model="endDate" class="form-control form-control-sm" style="max-width: 150px;" />
-            <button class="btn btn-outline-primary btn-sm" @click=ad>조회</button>
+            <button class="btn btn-outline-primary btn-sm">조회</button>
         </div>
 
         <div class="table-responsive">
@@ -33,7 +32,7 @@ const ad = review.userIdxList
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(item, index) in bookings" :key="index">
+                    <tr v-for="(results, index) in bookings" :key="index">
                         <td><small>{{ item.date }}</small></td>
                         <td><small>{{ item.number }}</small></td>
                         <td><small v-html="item.title"></small></td>
