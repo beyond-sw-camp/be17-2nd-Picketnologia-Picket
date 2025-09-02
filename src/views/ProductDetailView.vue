@@ -110,7 +110,8 @@ const totalRating = ref(0);
 
 const loadReviews = async (page = 1) => {
     try {
-        const data = await review.getReviews(page, 5);
+        const productId = route.params.id;
+        const data = await review.getReviews(productId, page, 5);
         if (data && data.reviewDtoLists) {
             reviews.value = data.reviewDtoLists;
             totalPages.value = data.totalPages;
@@ -121,7 +122,6 @@ const loadReviews = async (page = 1) => {
         } else {
             reviews.value = [];
             totalCount.value = 0;
-            averageRating.value = 0;
         }
     } catch (error) {
         console.error('리뷰 로딩 오류:', error);
@@ -437,7 +437,7 @@ const openBookingModal = () => {
                             </div>
                             <p class="mb-1">{{ review.comment }}</p>
                             <div class="mb-1">
-                                <strong>{{ review.name }} {{ formatDate(review.createdAt) }}</strong>
+                                <strong>{{ review.userNickName }} {{ formatDate(review.createdAt) }}</strong>
                             </div>
                         </div>
                     </div>

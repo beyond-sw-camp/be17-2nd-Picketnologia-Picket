@@ -1,7 +1,9 @@
 e
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useUserStore } from '@/stores/useUserStore'
+import axios from 'axios'
 import Stomp from 'stompjs'
 import PortOne from '@portone/browser-sdk/v2'
 import * as bootstrap from 'bootstrap'
@@ -9,7 +11,6 @@ import Calendar from '@/components/Calendar.vue';
 
 import productAPI from '@/api/product'
 import paymentAPI from '@/api/payment'
-import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
@@ -21,22 +22,24 @@ const closeModal = () => {
   openModal.value = false
 }
 
-const productDetail = ref(null) // 상품 상세 정보
-const availableDatesResponse = ref([]) // 백엔드에서 받아온 회차 날짜 리스트
-const calendarDates = ref([]) // 달력에 표시될 날짜 배열
-const selectedDate = ref('') // 사용자가 선택한 날짜
-const selectedTime = ref('') // 사용자가 선택한 회차 시간
-const seatGrades = ref([]) // 좌석 등급 배열
-const selectedSeats = ref([]) // 사용자가 선택한 좌석 배열
-const disabledSeats = ref([]) // 이미 예매된 좌석 (소켓 통신으로 업데이트)
-const deliveryMethod = ref('') // 수령 방법
-const step = ref(1) // 예매 절차 단계 (1, 2, 3)
-const seats = ref([]) // 좌석 데이터 (전체)
+const productDetail = ref(null)
+const availableDatesResponse = ref([])
+const calendarDates = ref([])
+const selectedDate = ref('')
+const selectedTime = ref('')
+const seatGrades = ref([])
+const selectedSeats = ref([])
+const disabledSeats = ref([])
+const deliveryMethod = ref('')
+const step = ref(1)
+const seats = ref([])
+const isLoading = ref(true)
+const loadError = ref(null)
 
-const isLoading = ref(true) // 데이터 로딩 상태
-const loadError = ref(null) // 데이터 로딩 오류 메시지
+// 사용자 정보
+const userStore = useUserStore()
+const myNickname = userStore.nickname
 
-// === 웹소켓 연결 ===
 const socket = ref(null)
 const connectWebSocket = () => {
   const ws = new WebSocket('ws://localhost:8080/websocket')
@@ -45,15 +48,27 @@ const connectWebSocket = () => {
   client.connect(
     {},
     (frame) => {
-      // 채널 구독(by.상품id)
-      client.subscribe(`/product/${eventIdx}`, (msg) => {
-        const receivedSeat = msg.body
-        // 이미 선택된 좌석이면 음영 처리
-        if (!disabledSeats.value.includes(receivedSeat)) {
-          disabledSeats.value.push(receivedSeat)
-        }
-        console.log('음영 처리 좌석 추가됨:', receivedSeat)
-      })
+      client.subscribe(
+        `/product/${eventIdx}/${selectedDate.value}/${selectedTime.value}`,
+        (msg) => {
+          const received = JSON.parse(msg.body)
+          const { seatName, sender, action } = received
+
+          if (sender !== myNickname) {
+            if (action === 'select') {
+              if (!disabledSeats.value.includes(seatName)) {
+                disabledSeats.value.push(seatName)
+                console.log('다른 유저 선택으로 블락된 좌석:', seatName)
+              }
+            } else if (action === 'deselect') {
+              // 수정: 좌석 해제 처리
+              const index = disabledSeats.value.indexOf(seatName)
+              if (index !== -1) disabledSeats.value.splice(index, 1)
+              console.log('다른 유저 해제로 블락 해제된 좌석:', seatName)
+            }
+          }
+        },
+      )
     },
     (err) => {
       console.error('웹소켓 연결 실패:', err)
@@ -61,31 +76,17 @@ const connectWebSocket = () => {
   )
 }
 
-// === API 호출 ===
 const api = {
   getProductDetail: async (id) => {
-    const req = {
-      productId: id,
-    }
-    const response = await productAPI.getProductDetail(req)
+    const response = await productAPI.getProductDetail({ productId: id })
     return response.results
   },
-
   getAvailableDates: async (id) => {
-    const req = {
-      id: id,
-    }
-    const response = await productAPI.getAvailableDates(req)
-    console.log(response)
-
+    const response = await productAPI.getAvailableDates({ id })
     return response.results
   },
-
   getSeatDates: async (id) => {
-    const req = {
-      productId: id,
-    }
-    const response = await productAPI.getSeatDates(req)
+    const response = await productAPI.getSeatDates({ productId: id })
     return response.results
   }
 
@@ -122,51 +123,30 @@ const api = {
 
 const loadSeatInfo = async () => {
   try {
-    isLoading.value = true // 로딩 상태 시작
-    // 1. 좌석 등급 및 좌석 맵 정보 불러오기
+    isLoading.value = true
     const seatInfoResponse = await api.getSeatDates(eventIdx)
-    console.log('API 응답에서 가져온 seatInfoResponse:', seatInfoResponse) // 디버깅용
-
-    // seatInfoResponse.seatGrades와 seatInfoResponse.seatMap
     if (seatInfoResponse && seatInfoResponse.seatGrades && seatInfoResponse.seatMap) {
-      // 2. 좌석 등급 정보 할당
       seatGrades.value = seatInfoResponse.seatGrades
-
-      // 3. 좌석 맵 데이터 할당 (2차원 배열을 1차원 배열로 변환)
-      const allSeats = seatInfoResponse.seatMap.flat()
-      seats.value = allSeats
-      console.log('좌석 맵 데이터 불러오기 성공:', seats.value)
+      seats.value = seatInfoResponse.seatMap.flat()
     } else {
-      console.error('좌석 등급 또는 좌석 맵 정보를 불러오는 데 실패했습니다.')
-      loadError.value = '좌석 정보를 불러올 수 없습니다. 다시 시도해 주세요.'
+      loadError.value = '좌석 정보를 불러올 수 없습니다.'
     }
   } catch (error) {
     console.error('초기 데이터 로드 실패:', error)
-    loadError.value = '서버 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+    loadError.value = '서버 통신 중 오류가 발생했습니다.'
   } finally {
-    isLoading.value = false // 로딩 상태 종료
+    isLoading.value = false
   }
 }
 
-// 모달 열기 및 데이터 로드
 async function openBookingModal() {
   try {
-    openModal.value = true;
+    productDetail.value = await api.getProductDetail(eventIdx)
+    const datesData = await api.getAvailableDates(eventIdx)
 
-    // 1. 웹소켓 연결
-    connectWebSocket()
-
-    // 2. 상품 상세정보 로드
-    // productDetail.value = await api.getProductDetail(eventIdx)
-
-    // 3. 일정 및 회차 정보 로드
-    // const datesData = await api.getAvailableDates(eventIdx)
-
-    // datesData가 유효한지 확인 후 할당
     if (datesData && datesData.length > 0) {
       availableDatesResponse.value = datesData
 
-      // 4. 달력 구성
       const firstAvailableDate = availableDatesResponse.value[0].date
       const [year, month] = firstAvailableDate.split('-').map(Number)
       const daysInMonth = new Date(year, month, 0).getDate()
@@ -179,70 +159,78 @@ async function openBookingModal() {
         const dateInfo = availableDatesResponse.value.find((d) => d.date === fullDate)
 
         return {
-          day: day,
-          fullDate: fullDate,
-          isAvailable: !!dateInfo, // 회차 정보가 있으면 예매 가능
+          day,
+          fullDate,
+          isAvailable: !!dateInfo,
           isSelected: false,
           isToday: fullDate === today,
         }
       })
     } else {
-      // 데이터가 없거나 유효하지 않을 때의 처리
-      console.log('백엔드에서 유효한 회차 정보를 받지 못했습니다. 달력을 생성하지 않습니다.')
       availableDatesResponse.value = []
       calendarDates.value = []
     }
 
-    // 부트스트랩 모달 열기
     const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'))
     bookingModal.show()
   } catch (error) {
-    console.error('모달 열기 및 데이터 로드 중 오류 발생:', error)
-    // 사용자에게 오류 메시지 표시
-    console.log('예매 정보를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
+    console.error('모달 열기 중 오류:', error)
   }
 }
 
-// 선택된 날짜의 회차 목록
 const currentDayTimeslots = computed(() => {
   const selected = availableDatesResponse.value.find((d) => d.date === selectedDate.value)
   return selected ? selected.roundTimes.map((rt) => ({ time: rt.times.slice(0, 5) })) : []
 })
 
-// 선택된 좌석의 총 가격
 const totalPrice = computed(() =>
   selectedSeats.value.reduce((sum, s) => sum + s.priceInfo.price, 0),
 )
 
-// 날짜 선택
 function selectDate(date) {
-  if (!date.isAvailable) return // 예매 불가능한 날짜는 선택 안 됨
+  if (!date.isAvailable) return
   calendarDates.value.forEach((d) => (d.isSelected = false))
   date.isSelected = true
   selectedDate.value = date.fullDate
-  selectedTime.value = '' // 날짜 변경 시 회차 초기화
+  selectedTime.value = ''
 }
 
-// 좌석 선택/해제
 function toggleSeat(seat) {
-  // disabledSeats는 좌석 이름(name)을 포함하므로 name으로 비교
   if (disabledSeats.value.includes(seat.name)) return
   const idx = selectedSeats.value.findIndex((s) => s.name === seat.name)
   if (idx >= 0) {
     selectedSeats.value.splice(idx, 1)
+    // 좌석 해제 메시지 전송
+    socket.value.send(
+      `/order/event/${eventIdx}/${selectedDate.value}/${selectedTime.value}`,
+      {},
+      JSON.stringify({
+        seatName: seat.name,
+        sender: myNickname,
+        action: 'deselect', // 해제 action
+      }),
+    )
   } else {
     selectedSeats.value.push(seat)
-    // 선택된 좌석 정보를 웹소켓으로 전송
-    socket.value.send(`/order/event/${eventIdx}`, {}, seat.name)
+    //좌석 선택 메시지 전송에 action 추가
+    socket.value.send(
+      `/order/event/${eventIdx}/${selectedDate.value}/${selectedTime.value}`,
+      {},
+      JSON.stringify({
+        seatName: seat.name,
+        sender: myNickname,
+        action: 'select', // 선택 action
+      }),
+    )
   }
 }
 
-// 다음 단계로 이동
 async function nextStep() {
   if (step.value === 1) {
     // if (!selectedDate.value) return alert('예매일을 선택하세요.')
     // if (!selectedTime.value) return alert('회차를 선택하세요.')
     step.value++
+    connectWebSocket()
   } else if (step.value === 2) {
     loadSeatInfo()
     // if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
@@ -253,19 +241,16 @@ async function nextStep() {
   }
 }
 
-// 이전 단계로 이동
 function prevStep() {
   if (step.value > 1) step.value--
 }
 
-// 결제 ID 생성
 const randomId = () => {
   return [...crypto.getRandomValues(new Uint32Array(2))]
     .map((word) => word.toString(16).padStart(8, '0'))
     .join('')
 }
 
-// 결제 요청
 const onSubmit = async () => {
 
   const validteResponse = await paymentAPI.validateSeats(
