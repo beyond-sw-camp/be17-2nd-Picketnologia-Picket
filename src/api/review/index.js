@@ -15,10 +15,10 @@ const register = async (req) => {
     return data;
 }
 
-const getReviews = async (page = 1, size = 5) => {
+const getReviews = async (productId, page = 1, size = 5) => {
     try {
         const backendPage = page - 1;
-        const response = await api.get(`/api/reviews/listPaging?page=${backendPage}&size=${size}`);
+        const response = await api.get(`/api/reviews/listPaging?productId=${productId}&page=${backendPage}&size=${size}`);
 
         return response.data.results;
     } catch (error) {
