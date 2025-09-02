@@ -1,15 +1,25 @@
+e
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import Stomp from 'stompjs'
 import PortOne from '@portone/browser-sdk/v2'
 import * as bootstrap from 'bootstrap'
+import Calendar from '@/components/Calendar.vue';
 
 import productAPI from '@/api/product'
+import paymentAPI from '@/api/payment'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const route = useRoute()
 const eventIdx = route.params.id // URL에서 상품 ID 가져오기
+
+const openModal = ref(false); // 예매 모달창 오픈 여부
+const closeModal = () => {
+  console.log("모달창 종료")
+  openModal.value = false
+}
 
 const productDetail = ref(null) // 상품 상세 정보
 const availableDatesResponse = ref([]) // 백엔드에서 받아온 회차 날짜 리스트
@@ -77,11 +87,40 @@ const api = {
     }
     const response = await productAPI.getSeatDates(req)
     return response.results
-  },
+  }
+
 }
 
 // === 컴포넌트 마운트 시 데이터 로드 ===
-onMounted(async () => {
+// onMounted(async () => {
+//   try {
+//     isLoading.value = true // 로딩 상태 시작
+//     // 1. 좌석 등급 및 좌석 맵 정보 불러오기
+//     const seatInfoResponse = await api.getSeatDates(eventIdx)
+//     console.log('API 응답에서 가져온 seatInfoResponse:', seatInfoResponse) // 디버깅용
+
+//     // seatInfoResponse.seatGrades와 seatInfoResponse.seatMap
+//     if (seatInfoResponse && seatInfoResponse.seatGrades && seatInfoResponse.seatMap) {
+//       // 2. 좌석 등급 정보 할당
+//       seatGrades.value = seatInfoResponse.seatGrades
+
+//       // 3. 좌석 맵 데이터 할당 (2차원 배열을 1차원 배열로 변환)
+//       const allSeats = seatInfoResponse.seatMap.flat()
+//       seats.value = allSeats
+//       console.log('좌석 맵 데이터 불러오기 성공:', seats.value)
+//     } else {
+//       console.error('좌석 등급 또는 좌석 맵 정보를 불러오는 데 실패했습니다.')
+//       loadError.value = '좌석 정보를 불러올 수 없습니다. 다시 시도해 주세요.'
+//     }
+//   } catch (error) {
+//     console.error('초기 데이터 로드 실패:', error)
+//     loadError.value = '서버 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+//   } finally {
+//     isLoading.value = false // 로딩 상태 종료
+//   }
+// })
+
+const loadSeatInfo = async () => {
   try {
     isLoading.value = true // 로딩 상태 시작
     // 1. 좌석 등급 및 좌석 맵 정보 불러오기
@@ -107,19 +146,21 @@ onMounted(async () => {
   } finally {
     isLoading.value = false // 로딩 상태 종료
   }
-})
+}
 
 // 모달 열기 및 데이터 로드
 async function openBookingModal() {
   try {
+    openModal.value = true;
+
     // 1. 웹소켓 연결
     connectWebSocket()
 
     // 2. 상품 상세정보 로드
-    productDetail.value = await api.getProductDetail(eventIdx)
+    // productDetail.value = await api.getProductDetail(eventIdx)
 
     // 3. 일정 및 회차 정보 로드
-    const datesData = await api.getAvailableDates(eventIdx)
+    // const datesData = await api.getAvailableDates(eventIdx)
 
     // datesData가 유효한지 확인 후 할당
     if (datesData && datesData.length > 0) {
@@ -199,15 +240,16 @@ function toggleSeat(seat) {
 // 다음 단계로 이동
 async function nextStep() {
   if (step.value === 1) {
-    if (!selectedDate.value) return alert('예매일을 선택하세요.')
-    if (!selectedTime.value) return alert('회차를 선택하세요.')
+    // if (!selectedDate.value) return alert('예매일을 선택하세요.')
+    // if (!selectedTime.value) return alert('회차를 선택하세요.')
     step.value++
   } else if (step.value === 2) {
-    if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
+    loadSeatInfo()
+    // if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
     step.value++
   } else if (step.value === 3) {
-    if (!deliveryMethod.value) return alert('수령 방식을 선택하세요.')
-    if (confirm('결제를 진행하시겠습니까?')) await onSubmit()
+    // if (!deliveryMethod.value) return alert('수령 방식을 선택하세요.')
+    await onSubmit()
   }
 }
 
@@ -225,32 +267,67 @@ const randomId = () => {
 
 // 결제 요청
 const onSubmit = async () => {
-  const totalAmount = totalPrice.value
-  const productIdxList = selectedSeats.value.map((s) => s.name)
-  const paymentId = randomId()
-  await PortOne.requestPayment({
-    storeId: 'store-730b9cdb-6eb8-4cd6-a943-35e3f3d92470',
-    channelKey: 'channel-key-226fbd3b-f977-4f84-a706-f711ac1e7bfd',
-    paymentId: paymentId,
-    orderName: productDetail.value.name,
-    totalAmount: totalAmount,
-    currency: 'KRW',
-    payMethod: 'CARD',
-    customData: { productIdxList },
-  })
+
+  const validteResponse = await paymentAPI.validateSeats(
+    {
+      roundTimeIdx: 1,
+      seatIdxes: [10]
+    }
+  );
+
+  const successValidateSeats = validteResponse.success;
+  if (successValidateSeats) {
+    const paymentIdx = validteResponse.results.paymentIdx;
+    const totalAmount = totalPrice.value
+    const productIdxList = selectedSeats.value.map((s) => s.name)
+    const paymentId = randomId()
+    const paymentResponse = await PortOne.requestPayment({
+      storeId: 'store-1ced0aba-9a78-47c4-a424-d03a4685fdd7',
+      channelKey: 'channel-key-31b66752-13a4-429f-8a6f-ec087910a6d9',
+      paymentId: paymentIdx,
+      orderName: productDetail.value.name,
+      totalAmount: 100000,
+      currency: 'KRW',
+      payMethod: 'CARD',
+      customData: {
+        productIdx: 1,
+        roundTimeIdx: 1,
+        seatIdxes: [
+          10
+        ]
+      },
+    })
+
+    if (!paymentResponse.code) {
+      router.push('/payment/results')
+    } else {
+      console.log(paymentResponse.code)
+    }
+
+  } else {
+    console.log("결제 오류")
+    alert(validteResponse.message)
+    return
+  }
+}
+
+const emitRoundTime = (roundTimes) => {
+  availableDatesResponse.value = roundTimes
 }
 </script>
 
 <template>
-  <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow">
+  <!-- <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow" data-bs-target="#staticBackdrop"
+    data-bs-toggle="modal">
     예매하기
-  </button>
+  </button> -->
 
-  <div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal fade" id="staticBackdrop" tabindex="-1" aria-hidden="true" aria-labelledby="staticBackdropLabel"
+    data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">티켓 예매</h5>
+          <h5 class="modal-title" id="staticBackdropLabel">티켓 예매</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -260,34 +337,35 @@ const onSubmit = async () => {
             <div :class="['step', { active: step === 3 }]">Step 3<br />수령 방법</div>
           </div>
 
-          <div v-show="step === 1" class="step-content">
-            <h4>예매일 선택</h4>
-            <div class="calendar-grid">
-              <div
-                v-for="date in calendarDates"
-                :key="date.fullDate"
-                :class="[
-                  'day',
-                  date.isAvailable ? 'available' : 'disabled',
-                  date.isSelected ? 'selected' : '',
-                  date.isToday ? 'today' : '',
-                ]"
-                @click="selectDate(date)"
-              >
-                {{ date.day }}
-              </div>
+          <!-- 예매일 선택 start -->
+          <div v-if="step === 1" class="step-content d-flex gap-2">
+            <div class=" w-50">
+              <h4>예매일 선택</h4>
+              <Calendar :product-id="route.params.id" :start-date="productDetail?.startDate"
+                :end-date="productDetail?.endDate" @round-times="emitRoundTime" />
             </div>
+            <div class="w-50 d-flex flex-column justify-content-between">
+              <div class=" w-100">
+                <h4 class=" mt-3">회차 선택</h4>
+                <select v-model="selectedTime" class="form-select w-100">
+                  <option disabled value="">회차를 선택하세요</option>
+                  <option v-for="slot in currentDayTimeslots" :key="slot.time" :value="slot.time">
+                    {{ slot.time }}
+                  </option>
+                </select>
+              </div>
+              <div class="d-flex flex-column gap-2">
+                <button class="btn btn-dark btn-lg" @click="nextStep">
+                  {{ step === 3 ? '결제하기' : '다음' }}
+                </button>
+              </div>
 
-            <h4 class="mt-3">회차 선택</h4>
-            <select v-model="selectedTime" class="form-select w-25">
-              <option disabled value="">회차를 선택하세요</option>
-              <option v-for="slot in currentDayTimeslots" :key="slot.time" :value="slot.time">
-                {{ slot.time }}
-              </option>
-            </select>
+            </div>
           </div>
+          <!-- 예매일 선택 end -->
 
-          <div v-show="step === 2" class="step-content">
+          <!-- 좌석 선택 start -->
+          <div v-if="step === 2" class="step-content d-flex gap-3">
             <!-- 좌석 로딩 중 메시지 -->
             <div v-if="isLoading" class="text-center">
               <div class="spinner-border" role="status">
@@ -303,70 +381,93 @@ const onSubmit = async () => {
             <div v-else-if="seats.length === 0" class="alert alert-info">
               <p>좌석 정보가 없습니다.</p>
             </div>
-            <div v-else>
+            <div v-else class="w-100">
               <h4>좌석 선택 (총 {{ seats.length }}석)</h4>
               <div class="seat-legend mb-3 d-flex gap-3">
-                <div
-                  v-for="grade in seatGrades"
-                  :key="grade.grade"
-                  class="legend-item"
-                  :class="grade.grade.toLowerCase()"
-                >
+                <div v-for="grade in seatGrades" :key="grade.grade" class="legend-item"
+                  :class="grade.grade.toLowerCase()">
                   <div class="color-box" :class="grade.grade.toLowerCase()"></div>
                   {{ grade.grade }}석 - {{ grade.priceInfo.priceFormat }}
                 </div>
               </div>
-              <div class="seat-grid">
-                <div
-                  v-for="seat in seats"
-                  :key="seat.name"
-                  :class="[
-                    'seat',
-                    seat.grade.toLowerCase(),
-                    {
-                      selected: selectedSeats.some((s) => s.name === seat.name),
-                      disabled: disabledSeats.includes(seat.name),
-                    },
-                  ]"
-                  @click="toggleSeat(seat)"
-                >
+              <div class="seat-grid ">
+                <div v-for="seat in seats" :key="seat.name" :class="[
+                  'seat',
+                  seat.grade.toLowerCase(),
+                  {
+                    selected: selectedSeats.some((s) => s.name === seat.name),
+                    disabled: disabledSeats.includes(seat.name),
+                  },
+                ]" @click="toggleSeat(seat)">
                   {{ seat.name }}
                 </div>
               </div>
             </div>
+            <div class="d-flex flex-column gap-2 w-75 justify-content-between">
+              <div class="summary d-flex flex-column gap-2 justify-content-between">
+                <h5>예매 요약</h5>
+                <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
+                <p><strong>회차:</strong> {{ selectedTime || '선택 안 됨' }}</p>
+                <p>
+                  <strong>좌석:</strong>
+                  {{selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨'}}
+                </p>
+                <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p>
+                <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
+              </div>
+              <div class="d-flex gap-2 flex-column w-100">
+                <button class="btn btn-dark btn-lg" @click="nextStep">
+                  {{ step === 3 ? '결제하기' : '다음' }}
+                </button>
+                <button class="btn btn-light border btn-lg" @click="prevStep">
+                  이전
+                </button>
+              </div>
+            </div>
           </div>
+          <!-- 좌석 선택 start -->
 
-          <div v-show="step === 3" class="step-content">
-            <h4>수령 방법</h4>
-            <label
-              ><input type="radio" v-model="deliveryMethod" value="현장 수령" /> 현장 수령</label
-            >
-            <label class="ms-3"
-              ><input type="radio" v-model="deliveryMethod" value="QR 코드" /> QR 코드</label
-            >
-            <p><input type="text" class="form-control" placeholder="이름" /></p>
-            <p><input type="text" class="form-control" placeholder="긴급 연락처" /></p>
-            <p><input type="text" class="form-control" placeholder="e-mail" /></p>
+          <!-- 티켓 수령 방법 start -->
+          <div v-if="step === 3" class="step-content d-flex gap-2">
+            <div class="w-100">
+              <h4>수령 방법</h4>
+              <label><input type="radio" v-model="deliveryMethod" value="현장 수령" /> 현장 수령</label>
+              <label class="ms-3"><input type="radio" v-model="deliveryMethod" value="QR 코드" /> QR 코드</label>
+              <p><input type="text" class="form-control" placeholder="이름" /></p>
+              <p><input type="text" class="form-control" placeholder="긴급 연락처" /></p>
+              <p><input type="text" class="form-control" placeholder="e-mail" /></p>
+            </div>
+
+            <div class="d-flex flex-column gap-2 w-75 justify-content-between">
+              <div class="summary d-flex flex-column gap-2 justify-content-between">
+                <h5>예매 요약</h5>
+                <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
+                <p><strong>회차:</strong> {{ selectedTime || '선택 안 됨' }}</p>
+                <p>
+                  <strong>좌석:</strong>
+                  {{selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨'}}
+                </p>
+                <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p>
+                <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
+              </div>
+              <div class="d-flex gap-2 flex-column w-100">
+                <button class="btn btn-dark btn-lg" @click="nextStep">
+                  결제하기
+                </button>
+                <button class="btn btn-light border btn-lg" @click="prevStep">
+                  이전
+                </button>
+              </div>
+            </div>
           </div>
+          <!-- 티켓 수령 방법 start -->
 
-          <div class="summary mt-4 border-top pt-3">
-            <h5>예매 요약</h5>
-            <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
-            <p><strong>회차:</strong> {{ selectedTime || '선택 안 됨' }}</p>
-            <p>
-              <strong>좌석:</strong>
-              {{ selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨' }}
-            </p>
-            <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p>
-            <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
-          </div>
-
-          <div class="modal-footer">
+          <!-- <div class="modal-footer">
             <button class="btn btn-secondary" @click="prevStep" :disabled="step === 1">이전</button>
             <button class="btn btn-primary" @click="nextStep">
               {{ step === 3 ? '결제하기' : '다음' }}
             </button>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
