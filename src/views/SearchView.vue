@@ -18,7 +18,7 @@ const performSearch = async (query) => {
     const data = await searchApi.naemSearch(query);
     if (data) {
       products.value = data;
-      // Optionally update the store if other components need to know about the latest search
+
       searchStore.setSearchResults(data, query);
     } else {
       products.value = [];
@@ -71,5 +71,4 @@ watch(
   </section>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
