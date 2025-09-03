@@ -1,6 +1,7 @@
 import api from "@/plugins/axiosInterceptor";
 
 
+
 const register = async (req) => {
     let data = {};
     let url = '/api/qna/qna_create_post';
