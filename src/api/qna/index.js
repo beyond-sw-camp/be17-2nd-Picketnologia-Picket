@@ -35,6 +35,7 @@ const userIdxQnaList = async (dateInfo) => {
 
 
 
+
 const getQnas = async (productId, page = 1, size = 5) => {
     try {
         const backendPage = page - 1;
@@ -48,4 +49,5 @@ const getQnas = async (productId, page = 1, size = 5) => {
 }
 
 export default { userIdxQnaList, register, getQnas }
+
 
