@@ -1,13 +1,14 @@
 <script setup>
 import review from '@/api/review';
 import { ref } from 'vue';
+import qna from '@/api/qna/index'
 
 const reviews = ref([]);
 const startDate = ref('');
 const endDate = ref('');
+const qnas = ref([]);
 
-
-const myPageReview = async () => {
+const myPageReviewAndQna = async () => {
     const dateInfo = {
         startDate: startDate.value,
         endDate: endDate.value
@@ -18,6 +19,14 @@ const myPageReview = async () => {
         reviews.value = response.results.map(review => ({
             ...review,
             isExpanded: false
+
+        }));
+
+        const qnaResponse = await qna.userIdxQnaList(dateInfo)
+        qnas.value = qnaResponse.results.map(qna => ({
+            ...qna,
+            isExpanded: false
+
         }));
 
         if (reviews.value.length == 0) {
@@ -27,6 +36,15 @@ const myPageReview = async () => {
         console.error('리뷰를 불러오는 데 실패했습니다.', error);
     }
 }
+
+const showAlert = (answers) => {
+    if (answers && answers.length > 0) {
+        const answerContent = answers.map(answer => answer.contents).join('\n\n');
+        alert(answerContent);
+    } else {
+        alert('아직 답변이 없습니다.');
+    }
+};
 
 </script>
 
@@ -40,7 +58,7 @@ const myPageReview = async () => {
             <input type="date" class="form-control form-control-sm" style="max-width: 150px;" v-model="startDate" />
             <span>~</span>
             <input type="date" class="form-control form-control-sm" style="max-width: 150px;" v-model="endDate" />
-            <button class="btn btn-outline-primary btn-sm" @click="myPageReview">조회</button>
+            <button class="btn btn-outline-primary btn-sm" @click="myPageReviewAndQna">조회</button>
         </div>
 
         <!-- Review Table -->
@@ -104,13 +122,16 @@ const myPageReview = async () => {
                 </thead>
                 <tbody>
                     <tr v-for="(qna, index) in qnas" :key="index">
-                        <td><small>{{ qna.date }}</small></td>
-                        <td><small>{{ qna.show }}</small></td>
+                        <td><small>{{ qna.createdAt }}</small></td>
+                        <td><small>{{ qna.prodcutName }}</small></td>
                         <td><small>{{ qna.title }}</small></td>
-                        <td><small>{{ qna.content }}</small></td>
-                        <td><small>{{ qna.public }}</small></td>
-                        <td><small>{{ qna.answered }}</small></td>
-                        <td><button class="btn btn-outline-dark btn-sm">답변 확인</button></td>
+                        <td><small>{{ qna.contents }}</small></td>
+                        <td><small>{{ qna.isPrivate }}</small></td>
+                        <td> <small v-if="qna.answers && qna.answers.length > 0">답변 완료</small>
+                            <small v-else>미답변</small>
+                        </td>
+                        <td><button class="btn btn-outline-dark btn-sm" @click="showAlert(qna.answers)">답변 확인</button>
+                        </td>
                     </tr>
                 </tbody>
             </table>
