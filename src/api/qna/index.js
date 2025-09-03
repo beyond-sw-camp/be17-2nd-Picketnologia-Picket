@@ -17,7 +17,7 @@ const register = async (req) => {
 }
 
 
-4
+
 const userIdxQnaList = async (dateInfo) => {
     let data = {};
     let url = '/api/qna/userQnaList';
