@@ -1,5 +1,6 @@
 import api from "@/plugins/axiosInterceptor";
 
+<<<<<<< HEAD
 const register = async (req) => {
     let data = {};
     let url = '/api/qna/qna_create_post';
@@ -17,6 +18,8 @@ const register = async (req) => {
 
 
 
+=======
+>>>>>>> origin/dev
 const userIdxQnaList = async (dateInfo) => {
     let data = {};
     let url = '/api/qna/userQnaList';
@@ -32,4 +35,8 @@ const userIdxQnaList = async (dateInfo) => {
     return data;
 }
 
+<<<<<<< HEAD
 export default { userIdxQnaList, register }
+=======
+export default { userIdxQnaList }
+>>>>>>> origin/dev
