@@ -33,5 +33,19 @@ const userIdxQnaList = async (dateInfo) => {
     return data;
 }
 
-export default { userIdxQnaList, register }
+
+
+const getQnas = async (productId, page = 1, size = 5) => {
+    try {
+        const backendPage = page - 1;
+        const response = await api.get(`/api/qna/qnaPaging?productId=${productId}&page=${backendPage}&size=${size}`);
+
+        return response.data.results;
+    } catch (error) {
+        console.error('QnA 조회 오류:', error);
+        return { content: [], totalPages: 0, totalElements: 0 };
+    }
+}
+
+export default { userIdxQnaList, register, getQnas }
 

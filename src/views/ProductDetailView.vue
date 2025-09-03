@@ -123,10 +123,13 @@ const onSubmitQna = async () => {
 
 
 const reviews = ref([]);
+const qnas = ref({});
 const totalPages = ref(0);
 const currentPage = ref(1);
 const totalCount = ref(0);
 const totalRating = ref(0);
+const totalPagesQna = ref(0);
+const currentPageQna = ref(1);
 
 const loadReviews = async (page = 1) => {
     try {
@@ -149,8 +152,28 @@ const loadReviews = async (page = 1) => {
     }
 };
 
+const loadQnas = async (page = 1) => {
+    try {
+        const productId = route.params.id;
+        const data = await qna.getQnas(productId, page, 5);
+        if (data && data.responseLists) {
+            qnas.value = data.responseLists
+            totalPagesQna.value = data.totalPages;
+            currentPageQna.value = data.currentPage + 1;
+            console.log(data)
+        } else {
+            qnas.value = [];
+            totalCount.value = 0;
+        }
+    } catch (error) {
+        console.error('Qna 로딩 오류:', error);
+        qnas.value = [];
+    }
+};
+
 onMounted(() => {
     loadReviews();
+    loadQnas();
 });
 
 const formatDate = (dateString) => {
@@ -535,24 +558,51 @@ const openBookingModal = () => {
             </div>
         </div>
 
-        <div class="mb-4">
-            <h5>등록된 질문 (2)</h5>
-            <ul class="list-group">
-                <li class="list-group-item">
-                    <strong>김문의</strong> <small class="text-muted">2024-06-24</small>
-                    <p>공연 당일 주차 가능할까요?</p>
-                    <div class="bg-light p-2 mt-2">
-                        <strong>답변:</strong> 주차장은 공연장 지하에 마련되어 있으며 선착순 이용 가능합니다.
+        <div class="list-group">
+
+            <div>
+                <!-- QnA 목록이 바로 뜸 -->
+                <div v-if="qnas.length > 0">
+                    <h5 class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            상품문의 <span class="text-secondary fw-normal"></span>
+                        </div>
+                    </h5>
+
+                    <div v-for="qna in qnas" :key="qna.id" class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <strong>{{ qna.userNickName }}</strong>
+                            <small class="text-muted">{{ formatDate(qna.createdAt) }}</small>
+                        </div>
+                        <p class="mb-1">{{ qna.title }}</p>
+                        <p class="mb-1">{{ qna.contents }}</p>
                     </div>
-                </li>
-                <li class="list-group-item">
-                    <strong>이관람</strong> <small class="text-muted">2024-06-23</small>
-                    <p>아이와 함께 관람해도 괜찮나요?</p>
-                    <div class="bg-light p-2 mt-2">
-                        <strong>답변:</strong> 본 공연은 만 7세 이상 관람 가능합니다.
-                    </div>
-                </li>
-            </ul>
+                </div>
+
+                <!-- 리뷰가 없을 때 -->
+                <div v-else>
+                    <h5>후기 목록</h5>
+                    <p class="text-muted">리뷰가 없습니다.</p>
+                </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <nav v-if="totalPages > 1" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                        <button class="page-link" @click="loadQnas(currentPage - 1)">이전</button>
+                    </li>
+
+                    <li v-for="page in totalPages" :key="page" class="page-item"
+                        :class="{ active: page === currentPage }">
+                        <button class="page-link" @click="loadQnas(page)">{{ page }}</button>
+                    </li>
+
+                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                        <button class="page-link" @click="loadQnas(currentPage + 1)">다음</button>
+                    </li>
+                </ul>
+            </nav>
         </div>
 
         <div class="alert alert-warning" role="alert">
