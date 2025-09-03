@@ -1,7 +1,11 @@
 <script setup>
 import { reactive, ref, watch, onMounted } from 'vue';
-
+import { useRoute } from 'vue-router';
+import { useSearchStore } from '@/stores/useSearchStore';
 import api from '@/api/product'
+
+const route = useRoute();
+const searchStore = useSearchStore();
 
 const regionOptions = ref([
     { value: '1', label: '지역 전체' },
@@ -32,19 +36,20 @@ const fetchData = reactive({
     selectedLocal: regionOptions.value[0].value
 })
 
-const products = ref([
-    {
-        idx: 1,
-        name: '지킬 앤 하이드',
-        venueName: '충무아트센터',
-        price: '4,500원',
-        startDate: '2025.6.15 ~ 7.30',
-        endDate: "2025.7.30",
-        posterUrl: '',
-        price: 4500,
-    }
-])
+// const products = ref([
+//     {
+//         idx: 1,
+//         name: '지킬 앤 하이드',
+//         venueName: '충무아트센터',
+//         price: '4,500원',
+//         startDate: '2025.6.15 ~ 7.30',
+//         endDate: "2025.7.30",
+//         posterUrl: '',
+//         price: 4500,
+//     }
+// ])
 
+const products = ref({})
 watch(
     () => fetchData.selectedSorted,
     async (newValue) => {
@@ -80,7 +85,14 @@ watch(
 //         products.value = []
 //     }
 // })
-
+onMounted(async () => {
+    const response = await api.getProducts()
+    if (response.success && response.results) {
+        products.value = response.results.productList
+    } else {
+        products.value = []
+    }
+}) 
 </script>
 
 <template>
@@ -120,7 +132,7 @@ watch(
                 </option>
             </select>
         </div>
-        <!-- <div class="row row-cols-5">
+        <div class="row row-cols-5">
             <div class=" col mb-4" v-for="product, index in products">
                 <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
                     <div class="card h-100">
@@ -136,7 +148,7 @@ watch(
                     </div>
                 </RouterLink>
             </div>
-        </div> -->
+        </div>
     </section>
     <!-- product list end -->
 </template>
