@@ -65,7 +65,7 @@ const getAvailableDates = async (req) => {
       data = res.data
     })
     .catch((error) => {
-      data = error.data
+      data = error.response.data
     })
 
   return data
@@ -73,7 +73,7 @@ const getAvailableDates = async (req) => {
 
 const getSeatDates = async (req) => {
   let data = {}
-  const url = `/api/seat-info?product=${req.productId}`
+  const url = `/api/seat-info?product=${req.productId}&roundTime=${req.roundTimeIdx}`
 
   await api
     .get(url)
@@ -87,6 +87,53 @@ const getSeatDates = async (req) => {
   return data
 }
 
+const getRoundDates = async (req) => {
+  let data = {}
+  const url = '/api/round/date?product=' + req.productId
+
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error
+    })
+
+  return data
+}
+
+const searchAndSort = async (params) => {
+  let data = {};
+  let url = '/api/products/searchAndSort';
+
+  await api.get(url, { params })
+    .then((res) => {
+      data = res.data;
+    })
+    .catch((error) => {
+      data = error.data;
+    });
+
+  return data;
+
+}
+
+const getRoundTimes = async (req) => {
+  let data = {}
+  const url = '/api/round/time?date=' + req.dateId
+
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error
+    })
+
+  return data
+}
 const getSeatStatus = async (req) => {
   let data = {}
   const url = `/api/round/seat-status/${req.roundId}/${req.date}${req.time}`
@@ -105,4 +152,14 @@ const getSeatStatus = async (req) => {
 
 
 
-export default { getProducts, getProductDetail, addProduct, getAvailableDates, getSeatDates, getSeatStatus }
+export default {
+  getProducts,
+  getProductDetail,
+  addProduct,
+  getAvailableDates,
+  getSeatDates,
+  getSeatStatus,
+  getRoundDates,
+  searchAndSort,
+  getRoundTimes,
+}
