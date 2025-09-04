@@ -63,10 +63,10 @@ const connectWebSocket = () => {
     {},
     (frame) => {
       client.subscribe(
-        `/topic/seats/${eventIdx}/${selectedDate.value}${selectedTime.value.time}`,
+        `/topic/seats/${selectedTime.value.idx}`,
         (msg) => {
           const received = JSON.parse(msg.body)
-          const { seatName, sender, action } = received
+          const { seatName, sender, action, seatIdx } = received
 
           if (sender !== myNickname) {
             if (action === 'select') {
@@ -121,8 +121,6 @@ const loadSeatInfo = async () => {
       roundTimeIdx: paymentForm.value.roundTimeIdx,
     })
 
-    console.log(seatInfoResponse)
-
     if (seatInfoResponse.success) {
       console.log(seatInfoResponse)
       seatGrades.value = seatInfoResponse.results.seatGrades
@@ -176,30 +174,32 @@ function toggleSeat(seat) {
     selectedSeats.value.splice(idx, 1)
     // 좌석 해제 메시지 전송
     socket.value.send(
-      `/order/seats/${eventIdx}/${selectedDate.value}${selectedTime.value.time}/select`,
+      `/order/seats/${selectedTime.value.idx}`,
       {},
       JSON.stringify({
         seatName: seat.name,
         sender: myNickname,
         action: 'deselect', // 해제 action
+        seatIdx: seat.idx
       }),
     )
   } else {
     selectedSeats.value.push(seat)
     //좌석 선택 메시지 전송에 action 추가
     socket.value.send(
-      `/order/seats/${eventIdx}/${selectedDate.value}${selectedTime.value.time}/select`,
+      `/order/seats/${selectedTime.value.idx}`,
       {},
       JSON.stringify({
         seatName: seat.name,
         sender: myNickname,
         action: 'select', // 선택 action
+        seatIdx: seat.idx
       }),
     )
   }
 }
 
-async function nextStep() {
+const nextStep = async () => {
   // 달력에서 좌석으로 넘어갈 때
   if (step.value === 1) {
     if (!selectedDate.value) return alert('예매일을 선택하세요.')
@@ -207,62 +207,81 @@ async function nextStep() {
 
     step.value++
     connectWebSocket()
-    loadSeatInfo()
+    await loadSeatInfo()
     isBack.value = false
     // 실시간 좌석 정보 불러오기
 
     // availableDatesResponse : 특정 상품의 일정 및 회차 정보
-    console.log(availableDatesResponse)
+    // console.log(availableDatesResponse)
     // 선택된 날짜와 시간에 해당하는 회차 객체 저장
-    const selectedRoundInfo = availableDatesResponse.value.find(
-      (d) => d.date === selectedDate.value,
-    )
-    console.log(selectedRoundInfo)
+    // const selectedRoundInfo = availableDatesResponse.value.find(
+    //   (d) => d.date === selectedDate.value,
+    // )
+    // console.log(selectedRoundInfo)
 
     // 선택된 날짜 or 시간의 회차 정보가 없을떄 오류 처리
-    if (!selectedRoundInfo) {
-      alert('선택된 날짜의 회차 정보를 찾을 수 없습니다.')
-      return
-    }
+    // if (!selectedRoundInfo) {
+    //   alert('선택된 날짜의 회차 정보를 찾을 수 없습니다.')
+    //   return
+    // }
 
     // 선택된 시간의 회차 정보 저장
-    const roundTimeInfo = selectedRoundInfo.roundTimes.find((rt) =>
-      rt.times.startsWith(selectedTime.value),
-    )
+    // const roundTimeInfo = selectedRoundInfo.roundTimes.find((rt) =>
+    //   rt.times.startsWith(selectedTime.value),
+    // )
 
     // 회차 정보 없을때 오류 처리
-    if (!roundTimeInfo) {
-      alert('선택된 시간의 회차 정보를 찾을 수 없습니다.')
-      return
-    }
+    // if (!roundTimeInfo) {
+    //   alert('선택된 시간의 회차 정보를 찾을 수 없습니다.')
+    //   return
+    // }
 
     // 백엔드와 변수 맞춰주기
     // const roundId = `${selectedDate.value.replace(/-/g, '')}-${selectedTime.value.replace(/:/g, '')}`
 
     const req = {
-      roundId: eventIdx,
-      date: selectedDate.value,
-      time: selectedTime.value,
+      roundTimeIdx: selectedTime.value.idx
     }
 
     // getSeatStatus 메소드를 실행
-    try {
-      const statusResponse = await productAPI.getSeatStatus(req)
+    const statusResponse = await productAPI.getSeatStatusV2(req)
 
-      // 응답 데이터로 좌석 상태를 업데이트
-      // statusResponse 객체의 키(key)는 좌석 이름, 값(value)은 상태입니다.
-      for (const [seatName, status] of Object.entries(statusResponse.results)) {
-        // 만약 좌석 상태가 'selecting'이고 `disabledSeats`에 포함되어 있지 않다면
-        // 해당 좌석을 `disabledSeats` 배열에 추가하여 다른 유저가 선택하지 못하도록 합니다.
-        if (status === 'select' && !disabledSeats.value.includes(seatName)) {
-          disabledSeats.value.push(seatName)
-          console.log(`다른 유저에 의해 선택된 좌석: ${seatName}`)
-        }
-      }
-    } catch (error) {
-      console.error('좌석 상태를 불러오는 중 오류 발생:', error)
-      alert('좌석 상태를 불러오는 중 오류가 발생했습니다.')
+    if (statusResponse.success) {
+      console.log(seats.value)
+      const rockSeats = statusResponse.results
+      const keys = Object.keys(rockSeats).map(Number)
+      console.log("keys" + keys)
+
+      console.log("seats.value = " + seats.value)
+
+      const rockedSeats = seats.value.filter(seat => {
+        return keys.includes(seat.idx)
+      })
+
+      console.log("rockedSeats = " + rockedSeats)
+
+      rockedSeats.forEach(element => {
+        disabledSeats.value.push(element.name)
+      });
     }
+
+    // 레디스에 임시로 선택된 좌석의 idx값
+
+
+    // // 응답 데이터로 좌석 상태를 업데이트
+    // // statusResponse 객체의 키(key)는 좌석 이름, 값(value)은 상태입니다.
+    // for (const [seatName, status] of Object.entries(statusResponse.results)) {
+    //   // 만약 좌석 상태가 'selecting'이고 `disabledSeats`에 포함되어 있지 않다면
+    //   // 해당 좌석을 `disabledSeats` 배열에 추가하여 다른 유저가 선택하지 못하도록 합니다.
+    //   if (status === 'select' && !disabledSeats.value.includes(seatName)) {
+    //     disabledSeats.value.push(seatName)
+    //     console.log(`다른 유저에 의해 선택된 좌석: ${seatName}`)
+    //   }
+    // }
+    // } catch (error) {
+    //   console.error('좌석 상태를 불러오는 중 오류 발생:', error)
+    //   alert('좌석 상태를 불러오는 중 오류가 발생했습니다.')
+    // }
   } else if (step.value === 2) {
     // 좌석에서 수령 방법으로 넘어갈 때
     // if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
