@@ -135,15 +135,13 @@ const loadSeatInfo = async () => {
 async function openBookingModal() {
   try {
 
+    // 로그인 상태가 아니라면
+    if (!userStore.isLogin) {
+      router.push('/login')
+      return
+    }
+
     openModal.value = true
-
-    // if (datesData && datesData.length > 0) {
-    //   availableDatesResponse.value = datesData
-
-    // } else {
-    //   availableDatesResponse.value = []
-    //   calendarDates.value = []
-    // }
 
   } catch (error) {
     console.error('모달 열기 중 오류:', error)
