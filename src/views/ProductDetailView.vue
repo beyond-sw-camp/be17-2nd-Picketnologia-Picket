@@ -6,7 +6,7 @@ import review from '@/api/review';
 import { useUserStore } from '@/stores/useUserStore';
 import BookingPage from '@/components/BookingPage.vue';
 import router from '@/router';
-
+import qna from '@/api/qna';
 
 const route = useRoute()
 const userStore = useUserStore();
@@ -98,15 +98,38 @@ const onSubmit = async () => {
         alert("예매자만 후기작성이 가능합니다.");
     }
 }
+const qnaForm = reactive({
+    contents: '',
+    productId: 0,
+    title: "",
+    isPrivate: false,
+    password: ""
+});
 
+const onSubmitQna = async () => {
+    try {
+        qnaForm.productId = route.params.id;
+        const data = await qna.register(qnaForm);
 
+        if (data.success !== false) {
+            alert('QnA가 성공적으로 등록되었습니다.');
+        } else {
+            alert(data.message || "QnA 등록에 실패했습니다.");
+        }
+    } catch (error) {
+        console.error('Submit error:', error);
+    }
+}
 
 
 const reviews = ref([]);
+const qnas = ref({});
 const totalPages = ref(0);
 const currentPage = ref(1);
 const totalCount = ref(0);
 const totalRating = ref(0);
+const totalPagesQna = ref(0);
+const currentPageQna = ref(1);
 
 const loadReviews = async (page = 1) => {
     try {
@@ -129,8 +152,28 @@ const loadReviews = async (page = 1) => {
     }
 };
 
+const loadQnas = async (page = 1) => {
+    try {
+        const productId = route.params.id;
+        const data = await qna.getQnas(productId, page, 5);
+        if (data && data.responseLists) {
+            qnas.value = data.responseLists
+            totalPagesQna.value = data.totalPages;
+            currentPageQna.value = data.currentPage + 1;
+            console.log(data)
+        } else {
+            qnas.value = [];
+            totalCount.value = 0;
+        }
+    } catch (error) {
+        console.error('Qna 로딩 오류:', error);
+        qnas.value = [];
+    }
+};
+
 onMounted(() => {
     loadReviews();
+    loadQnas();
 });
 
 const formatDate = (dateString) => {
@@ -469,40 +512,88 @@ const formatDate = (dateString) => {
 
         <div class="card mb-4">
             <div class="card-body">
-                <h5 class="card-title">질문 작성하기</h5>
-                <form>
+                <h5 class="card-title">문의 작성하기</h5>
+                <form @submit.prevent="onSubmitQna">
                     <div class="form-group">
-                        <label for="qnaWriter">작성자</label>
-                        <input type="text" class="form-control" id="qnaWriter" placeholder="이름을 입력하세요">
+                        <label for="qnaQuestion">문의 제목</label>
+                        <textarea class="form-control" id="qnaQuestiontitle" rows="1" v-model="qnaForm.title"
+                            placeholder="질문의 제목을 입력해주세요" @click="loginCheck" required></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="qnaQuestion">질문 내용</label>
-                        <textarea class="form-control" id="qnaQuestion" rows="4"
+                        <label for="qnaQuestion">문의 내용</label>
+                        <textarea class="form-control" id="qnaQuestion" rows="4" v-model="qnaForm.contents"
                             placeholder="궁금한 내용을 작성해 주세요"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>공개 여부</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="public" :value="false"
+                                    v-model="qnaForm.isPrivate">
+                                <label class="form-check-label" for="public">공개</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="private" :value="true"
+                                    v-model="qnaForm.isPrivate">
+                                <label class="form-check-label" for="private">비공개</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" v-if="qnaForm.isPrivate">
+                        <label for="qnaPassword">비밀번호</label>
+                        <input type="password" class="form-control" id="qnaPassword" v-model="qnaForm.password"
+                            placeholder="비밀번호 4자리를 입력해주세요">
                     </div>
                     <button type="submit" class="btn btn-primary">등록하기</button>
                 </form>
             </div>
         </div>
 
-        <div class="mb-4">
-            <h5>등록된 질문 (2)</h5>
-            <ul class="list-group">
-                <li class="list-group-item">
-                    <strong>김문의</strong> <small class="text-muted">2024-06-24</small>
-                    <p>공연 당일 주차 가능할까요?</p>
-                    <div class="bg-light p-2 mt-2">
-                        <strong>답변:</strong> 주차장은 공연장 지하에 마련되어 있으며 선착순 이용 가능합니다.
+        <div class="list-group">
+
+            <div>
+                <!-- QnA 목록이 바로 뜸 -->
+                <div v-if="qnas.length > 0">
+                    <h5 class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            상품문의 <span class="text-secondary fw-normal"></span>
+                        </div>
+                    </h5>
+
+                    <div v-for="qna in qnas" :key="qna.id" class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <strong>{{ qna.userNickName }}</strong>
+                            <small class="text-muted">{{ formatDate(qna.createdAt) }}</small>
+                        </div>
+                        <p class="mb-1">{{ qna.title }}</p>
+                        <p class="mb-1">{{ qna.contents }}</p>
                     </div>
-                </li>
-                <li class="list-group-item">
-                    <strong>이관람</strong> <small class="text-muted">2024-06-23</small>
-                    <p>아이와 함께 관람해도 괜찮나요?</p>
-                    <div class="bg-light p-2 mt-2">
-                        <strong>답변:</strong> 본 공연은 만 7세 이상 관람 가능합니다.
-                    </div>
-                </li>
-            </ul>
+                </div>
+
+                <!-- 리뷰가 없을 때 -->
+                <div v-else>
+                    <h5>후기 목록</h5>
+                    <p class="text-muted">리뷰가 없습니다.</p>
+                </div>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <nav v-if="totalPages > 1" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                        <button class="page-link" @click="loadQnas(currentPage - 1)">이전</button>
+                    </li>
+
+                    <li v-for="page in totalPages" :key="page" class="page-item"
+                        :class="{ active: page === currentPage }">
+                        <button class="page-link" @click="loadQnas(page)">{{ page }}</button>
+                    </li>
+
+                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                        <button class="page-link" @click="loadQnas(currentPage + 1)">다음</button>
+                    </li>
+                </ul>
+            </nav>
         </div>
 
         <div class="alert alert-warning" role="alert">
