@@ -20,10 +20,9 @@ export const useUserStore = defineStore('user', {
     },
     logout() {
       const route = useRoute()
-      this.$reset() // 상태 초기화
+      this.$reset()
       sessionStorage.removeItem('user')
       router.push(route.fullPath)
-      // router.push('/')
     },
   },
   persist: {

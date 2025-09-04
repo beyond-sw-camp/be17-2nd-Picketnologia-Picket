@@ -1,14 +1,30 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import LoginNavBar from '@/components/LoginNavBar.vue'
-import { RouterLink, useRoute } from 'vue-router'
-
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { reactive } from 'vue'
 import genreApi from '@/api/genre'
 import Logo from '@/components/Logo.vue'
+import { useSearchStore } from '@/stores/useSearchStore'
+import search from '@/api/search'
 
 const route = useRoute()
-
+const router = useRouter()
+const searchStore = useSearchStore()
 const genres = ref([])
+
+const searchForm = reactive({
+  name: ''
+});
+
+const searchName = (name) => {
+  if (!name || !name.trim()) {
+    alert('검색어를 입력해주세요.');
+    return;
+  }
+  router.push({ name: 'search', query: { q: name } });
+}
+
 
 const setActiveTab = (genre) => {
   return genre.code === route.params.code
@@ -53,9 +69,10 @@ onMounted(async () => {
             <Logo />
           </div>
           <div class="position-relative align-self-end" style="max-width: 400px; width: 100%;" v-show="!props.onlyLogo">
-            <input type="text" class="form-control pe-5" placeholder="공연을 검색하세요.">
+            <input type="text" class="form-control pe-5" placeholder="공연을 검색하세요." v-model="searchForm.name">
             <img src="@/assets/icons/search.png" alt="search icon"
-              class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted">
+              class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted"
+              @click="searchName(searchForm.name)">
             </img>
           </div>
         </div>
