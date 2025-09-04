@@ -1,5 +1,4 @@
 export const useDate = () => {
-
   function curDate(): string {
     const today = new Date()
 
@@ -34,7 +33,7 @@ export const useDate = () => {
   function getYearAndMonth(curDate: Date): string {
     const year: number = curDate.getFullYear()
     const month: number = curDate.getMonth() + 1
-    return year + "년 " + month + "월"
+    return year + '년 ' + month + '월'
   }
 
   function prevMonth(curDate: Date): string {
@@ -51,15 +50,15 @@ export const useDate = () => {
 
   function extractDateFormat(date: Date): string {
     const year: number = date.getFullYear()
-    const month: string = ("0" + (date.getMonth() + 1)).slice(-2)
-    const day: string = ("0" + date.getDate()).slice(-2)
-  
-    return year + "-" + month + "-" + day
+    const month: string = ('0' + (date.getMonth() + 1)).slice(-2)
+    const day: string = ('0' + date.getDate()).slice(-2)
+
+    return year + '-' + month + '-' + day
   }
 
   function getDateOfCurDate(curDate: string): Date {
-    const [year, month, day] = curDate.split("-").map(Number)
-    const createDate: Date = new Date(year, month-1, day)
+    const [year, month, day] = curDate.split('-').map(Number)
+    const createDate: Date = new Date(year, month - 1, day)
 
     return createDate
   }
@@ -72,6 +71,6 @@ export const useDate = () => {
     getYearAndMonth,
     prevMonth,
     nextMonth,
-    extractDateFormat
+    extractDateFormat,
   }
-};
+}

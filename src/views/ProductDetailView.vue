@@ -182,11 +182,6 @@ const formatDate = (dateString) => {
     }
     return '';
 };
-
-const openModal = ref(false);
-const openBookingModal = () => {
-    openModal.value = true;
-}
 </script>
 
 <template>
@@ -227,11 +222,7 @@ const openBookingModal = () => {
                     </table>
                     <div class="flex-fill"></div>
                     <div class="d-grid">
-                        <BookingPage :product-id="product.idx" v-if="openModal" />
-                        <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow"
-                            data-bs-target="#staticBackdrop" data-bs-toggle="modal">
-                            예매하기
-                        </button>
+                        <BookingPage :product-name="product.name" />
                     </div>
 
                 </div>

@@ -73,7 +73,7 @@ const getAvailableDates = async (req) => {
 
 const getSeatDates = async (req) => {
   let data = {}
-  const url = `/api/seat-info?product=${req.productId}`
+  const url = `/api/seat-info?product=${req.productId}&roundTime=${req.roundTimeIdx}`
 
   await api
     .get(url)
@@ -103,7 +103,6 @@ const getRoundDates = async (req) => {
   return data
 }
 
-
 const searchAndSort = async (params) => {
   let data = {};
   let url = '/api/products/searchAndSort';
@@ -117,7 +116,25 @@ const searchAndSort = async (params) => {
     });
 
   return data;
+
 }
+
+const getRoundTimes = async (req) => {
+  let data = {}
+  const url = '/api/round/time?date=' + req.dateId
+
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error
+    })
+
+  return data
+}
+
 export default {
   getProducts,
   getProductDetail,
@@ -125,5 +142,6 @@ export default {
   getAvailableDates,
   getSeatDates,
   getRoundDates,
-  searchAndSort
+  searchAndSort,
+  getRoundTimes,
 }
