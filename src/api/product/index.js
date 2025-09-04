@@ -134,6 +134,23 @@ const getRoundTimes = async (req) => {
 
   return data
 }
+const getSeatStatus = async (req) => {
+  let data = {}
+  const url = `/api/round/seat-status/${req.roundId}/${req.date}${req.time}`
+
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.response.data
+    })
+
+  return data
+}
+
+
 
 export default {
   getProducts,
@@ -141,6 +158,7 @@ export default {
   addProduct,
   getAvailableDates,
   getSeatDates,
+  getSeatStatus,
   getRoundDates,
   searchAndSort,
   getRoundTimes,
