@@ -103,6 +103,21 @@ const getRoundDates = async (req) => {
   return data
 }
 
+
+const searchAndSort = async (params) => {
+  let data = {};
+  let url = '/api/products/searchAndSort';
+
+  await api.get(url, { params })
+    .then((res) => {
+      data = res.data;
+    })
+    .catch((error) => {
+      data = error.data;
+    });
+
+  return data;
+}
 export default {
   getProducts,
   getProductDetail,
@@ -110,4 +125,5 @@ export default {
   getAvailableDates,
   getSeatDates,
   getRoundDates,
+  searchAndSort
 }

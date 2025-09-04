@@ -8,7 +8,7 @@ import SortOptionSelector from '@/components/selector/SortOptionSelector.vue';
 import Observer from '@/components/Observer.vue';
 
 const route = useRoute();
-
+const sort = ref('');
 const products = ref([
     {
         idx: 1,
@@ -58,6 +58,7 @@ const getContents = async (req) => {
 watch(() => route.params.code, async (newValue) => {
     const req = {
         genre: newValue,
+        sort: sort.value,  // 라우트 변경시에도 정렬 옵션 유지
     }
 
     await getContents(req)
@@ -66,30 +67,82 @@ watch(() => route.params.code, async (newValue) => {
 onMounted(async () => {
     const req = {
         genre: route.params.code,
+        sort: sort.value,  // 마운트시에도 정렬 옵션 포함
     }
 
     await getContents(req)
 })
 
 const loadMore = async () => {
-    if (pageInfo.value.currentPage >= pageInfo.value.totalPage) {
-        return;
-    }
+    if (pageInfo.value.currentPage >= pageInfo.value.totalPage) return;
 
     const req = {
         genre: route.params.code,
+        sort: sort.value,   // ✅ 정렬 기준 유지
         page: incCurrentPage()
     }
 
     const response = await productAPI.getProducts(req)
     if (response.success) {
-        const addProducts = response.results.products
-        pageInfo.value.currentPage = response.results.currentPage
+        products.value.push(...response.results.products);
+        pageInfo.value.currentPage = response.results.currentPage;
+    }
+}
 
-        products.value.push(...addProducts)
+// 🔥 핵심 수정: 정렬 처리 함수 개선
+const handleSortChange = async (val) => {
+    console.log('정렬 변경:', val); // 디버깅용
+    sort.value = val;
+
+    const req = {
+        genre: route.params.code,
+        sort: val,
+        page: 1
+    };
+
+    console.log('정렬 요청:', req); // 디버깅용
+
+    // ⭐ 올바른 API 사용: searchAndSort
+    const response = await productAPI.searchAndSort(req);
+
+    console.log('정렬 응답:', response); // 디버깅용
+    console.log('응답 전체 구조:', JSON.stringify(response, null, 2)); // 구조 확인
+
+    // 🔍 상세 디버깅 - 어디에 products가 있는지 찾기
+    console.log('response.results:', response.results);
+    console.log('response.products:', response.products);
+    console.log('response.data:', response.data);
+    console.log('응답의 모든 키들:', Object.keys(response));
+    if (response.results) {
+        console.log('results의 모든 키들:', Object.keys(response.results));
     }
 
-}
+    if (response.success) {
+        // ⭐ 핵심 수정: response.results가 바로 상품 배열임!
+        const productsData = response.results;
+
+        if (Array.isArray(productsData)) {
+            products.value = [...productsData];
+            console.log('정렬 성공 - 상품 수:', products.value.length);
+
+            // 정렬 후에는 페이지 정보 초기화 (searchAndSort API에는 페이지 정보가 없음)
+            pageInfo.value = {
+                currentPage: 1,
+                totalPage: 1
+            };
+        } else {
+            console.error('results가 배열이 아닙니다:', productsData);
+            products.value = [];
+        }
+
+        console.log('정렬 후 products 배열:', products.value);
+    } else {
+        console.error('정렬 요청 실패:', response);
+        console.log('기존 상품 수 유지:', products.value.length);
+    }
+};
+
+// nextTick 임포트 제거 (더 이상 사용하지 않음)
 </script>
 
 <template>
@@ -114,7 +167,11 @@ const loadMore = async () => {
                             <img :src="product.posterUrl" class="card-img-top rounded-3"
                                 style="width: 100%; height: 300px;">
                             <div class="card-body d-flex flex-column gap-1 px-1">
-                                <h5 class="card-title fw-bold">{{ product.name }}</h5>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title fw-bold mb-0">{{ product.name }}</h5>
+
+
+                                </div>
                                 <h6 class="card-subtitle fw-bold text-primary">
                                     {{ product.openDate }}
                                 </h6>
@@ -132,6 +189,9 @@ const loadMore = async () => {
         <!-- 둘러보기 -->
         <section class="d-flex flex-column gap-2 ">
             <h3 class="fs-2 align-self-center fw-semibold">공연 둘러보기</h3>
+            <!-- 🔥 디버깅용: 현재 정렬 상태와 상품 수 표시 -->
+            <div class="text-muted small">
+            </div>
             <div v-if="products.length === 0" class="text-center h1">
                 <p class="text-body-secondary">해당하는 공연이 없습니다.</p>
             </div>
@@ -140,18 +200,35 @@ const loadMore = async () => {
                 <RegionSelector />
 
                 <!-- 정렬 옵션 선택 -->
-                <SortOptionSelector />
+                <SortOptionSelector @changeSort="handleSortChange" />
             </div>
             <div class="row row-cols-5">
-                <div class=" col mb-4" v-for="product, index in products">
+                <!-- ⭐ 수정 4: 고유한 key 추가로 Vue의 렌더링 최적화 방지 -->
+                <div class="col mb-4" v-for="(product, index) in products" :key="`${product.idx}-${sort}`">
                     <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
                         <div class="card h-100 border-0">
                             <img :src="product.posterUrl" class="card-img-top rounded-3"
                                 style="width: 100%; height: 300px;">
                             <div class="card-body d-flex flex-column justify-content-between gap-1 px-1">
-                                <h5 class="card-title fw-bold">{{ product.name }}</h5>
+
+                                <!-- 이름 + 배지 한 줄 -->
+                                <div class="d-flex align-items-center gap-2">
+                                    <h5 class="card-title fw-bold mb-0">{{ product.name }}</h5>
+
+                                    <span v-if="sort === 'review' && product.reviewCount !== null"
+                                        class="badge bg-secondary">
+                                        리뷰 {{ product.reviewCount }}개
+                                    </span>
+                                    <span v-else-if="sort === 'rating' && product.reviewRating !== null"
+                                        class="badge bg-warning text-dark">
+                                        ⭐ {{ product.reviewRating.toFixed(1) }}
+                                    </span>
+                                </div>
+
+                                <!-- 장소, 일정 -->
                                 <h6 class="card-subtitle">{{ product.venueName }}</h6>
-                                <p class="card-text text-body-tertiary">{{ product.startDate }} ~ {{ product.endDate }}
+                                <p class="card-text text-body-tertiary">
+                                    {{ product.startDate }} ~ {{ product.endDate }}
                                 </p>
                             </div>
                         </div>
