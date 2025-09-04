@@ -22,7 +22,7 @@ const logout = async () => {
         </span>
         <img src="@/assets/icons/login.png" alt="login icon"></img>
     </RouterLink>
-    <div class="dropdown" v-else>
+    <div class="dropdown" v-show="userStore.isLogin">
         <button class="btn dropdown-toggle border-0 btn-lg fw-bold" type="button" data-bs-toggle="dropdown"
             aria-expanded="false">
             {{ userStore.nickname }}

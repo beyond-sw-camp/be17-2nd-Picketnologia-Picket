@@ -138,6 +138,13 @@ const loadSeatInfo = async () => {
 
 async function openBookingModal() {
   try {
+
+    // 로그인 상태가 아니라면
+    if (!userStore.isLogin) {
+      router.push('/login')
+      return
+    }
+
     openModal.value = true
 
     // if (datesData && datesData.length > 0) {
@@ -147,6 +154,7 @@ async function openBookingModal() {
     //   availableDatesResponse.value = []
     //   calendarDates.value = []
     // }
+
   } catch (error) {
     console.error('모달 열기 중 오류:', error)
   }
@@ -340,35 +348,18 @@ const selectRoundTime = () => {
 </script>
 
 <template>
-  <button
-    @click="openBookingModal"
-    type="button"
-    class="btn btn-primary btn-lg shadow"
-    data-bs-target="#staticBackdrop"
-    data-bs-toggle="modal"
-  >
+  <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow" data-bs-target="#staticBackdrop"
+    data-bs-toggle="modal">
     예매하기
   </button>
 
-  <div
-    class="modal fade"
-    id="staticBackdrop"
-    tabindex="-1"
-    aria-hidden="true"
-    aria-labelledby="staticBackdropLabel"
-    data-bs-backdrop="static"
-    data-bs-keyboard="false"
-  >
+  <div class="modal fade" id="staticBackdrop" tabindex="-1" aria-hidden="true" aria-labelledby="staticBackdropLabel"
+    data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="staticBackdropLabel">티켓 예매</h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            @click="closeModal"
-          ></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" @click="closeModal"></button>
         </div>
         <div class="modal-body">
           <div class="steps mb-3">
@@ -381,14 +372,9 @@ const selectRoundTime = () => {
           <div v-if="step === 1" class="step-content d-flex gap-2">
             <div class="w-50">
               <h4>예매일 선택</h4>
-              <Calendar
-                :product-id="Number(route.params.id)"
-                :start-date="productDetail?.startDate"
-                :end-date="productDetail?.endDate"
-                @round-date-id="selectedRoundDate"
-                :is-open-reservation-modal="openModal"
-                :is-back="isBack"
-              />
+              <Calendar :product-id="Number(route.params.id)" :start-date="productDetail?.startDate"
+                :end-date="productDetail?.endDate" @round-date-id="selectedRoundDate"
+                :is-open-reservation-modal="openModal" :is-back="isBack" />
             </div>
             <div class="w-50 d-flex flex-column justify-content-between">
               <div class="w-100">
@@ -429,30 +415,21 @@ const selectRoundTime = () => {
             <div v-else class="w-100">
               <h4>좌석 선택 (총 {{ seats.length }}석)</h4>
               <div class="seat-legend mb-3 d-flex gap-3">
-                <div
-                  v-for="grade in seatGrades"
-                  :key="grade.grade"
-                  class="legend-item"
-                  :class="grade.grade.toLowerCase()"
-                >
+                <div v-for="grade in seatGrades" :key="grade.grade" class="legend-item"
+                  :class="grade.grade.toLowerCase()">
                   <div class="color-box" :class="grade.grade.toLowerCase()"></div>
                   {{ grade.grade }}석 - {{ grade.priceInfo.priceFormat }}
                 </div>
               </div>
               <div class="seat-grid">
-                <div
-                  v-for="seat in seats"
-                  :key="seat.name"
-                  :class="[
-                    'seat',
-                    seat.grade.toLowerCase(),
-                    {
-                      selected: selectedSeats.some((s) => s.name === seat.name),
-                      disabled: disabledSeats.includes(seat.name) || seat.isReserved,
-                    },
-                  ]"
-                  @click="toggleSeat(seat)"
-                >
+                <div v-for="seat in seats" :key="seat.name" :class="[
+                  'seat',
+                  seat.grade.toLowerCase(),
+                  {
+                    selected: selectedSeats.some((s) => s.name === seat.name),
+                    disabled: disabledSeats.includes(seat.name) || seat.isReserved,
+                  },
+                ]" @click="toggleSeat(seat)">
                   {{ seat.name }}
                 </div>
               </div>
@@ -464,7 +441,7 @@ const selectRoundTime = () => {
                 <p><strong>회차:</strong> {{ selectedTime.time || '선택 안 됨' }}</p>
                 <p>
                   <strong>좌석:</strong>
-                  {{ selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨' }}
+                  {{selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨'}}
                 </p>
                 <!-- <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p> -->
                 <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
@@ -490,7 +467,7 @@ const selectRoundTime = () => {
                 <p><strong>회차:</strong> {{ selectedTime.time || '선택 안 됨' }}</p>
                 <p>
                   <strong>좌석:</strong>
-                  {{ selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨' }}
+                  {{selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨'}}
                 </p>
                 <!-- <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p> -->
                 <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
