@@ -87,5 +87,22 @@ const getSeatDates = async (req) => {
   return data
 }
 
+const getSeatStatus = async (req) => {
+  let data = {}
+  const url = `/api/round/seat-status/${req.roundId}/${req.date}${req.time}`
 
-export default { getProducts, getProductDetail, addProduct, getAvailableDates, getSeatDates }
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.response.data
+    })
+
+  return data
+}
+
+
+
+export default { getProducts, getProductDetail, addProduct, getAvailableDates, getSeatDates, getSeatStatus }
