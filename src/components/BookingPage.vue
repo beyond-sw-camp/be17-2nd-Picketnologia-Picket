@@ -6,7 +6,7 @@ import axios from 'axios'
 import Stomp from 'stompjs'
 import PortOne from '@portone/browser-sdk/v2'
 import * as bootstrap from 'bootstrap'
-import Calendar from '@/components/Calendar.vue';
+import Calendar from '@/components/Calendar.vue'
 
 import productAPI from '@/api/product'
 import paymentAPI from '@/api/payment'
@@ -16,13 +16,13 @@ const route = useRoute()
 const eventIdx = route.params.id // URL에서 상품 ID 가져오기
 
 const props = defineProps({
-  productName: String
+  productName: String,
 })
 
-const openModal = ref(false); // 예매 모달창 오픈 여부
+const openModal = ref(false) // 예매 모달창 오픈 여부
 const isBack = ref(false)
 const closeModal = () => {
-  step.value = 1;
+  step.value = 1
   paymentForm.value.roundTimeIdx = ''
   paymentForm.value.seatIdxes = []
 }
@@ -47,7 +47,7 @@ const roundTimes = ref([])
 const paymentForm = ref({
   productIdx: route.params.id,
   roundTimeIdx: '',
-  seatIdxes: []
+  seatIdxes: [],
 })
 
 // 사용자 정보
@@ -63,7 +63,7 @@ const connectWebSocket = () => {
     {},
     (frame) => {
       client.subscribe(
-        `/product/${eventIdx}/${selectedDate.value}/${paymentForm.value.roundTimeIdx}`,
+        `/topic/seats/${eventIdx}/${selectedDate.value}${selectedTime.value.time}`,
         (msg) => {
           const received = JSON.parse(msg.body)
           const { seatName, sender, action } = received
@@ -75,7 +75,7 @@ const connectWebSocket = () => {
                 console.log('다른 유저 선택으로 블락된 좌석:', seatName)
               }
             } else if (action === 'deselect') {
-              // 수정: 좌석 해제 처리
+              // 좌석 해제 처리
               const index = disabledSeats.value.indexOf(seatName)
               if (index !== -1) disabledSeats.value.splice(index, 1)
               console.log('다른 유저 해제로 블락 해제된 좌석:', seatName)
@@ -102,8 +102,13 @@ const api = {
   getSeatDates: async (id) => {
     const response = await productAPI.getSeatDates({ productId: id })
     return response.results
-  }
+  },
+  getSeatStatus: async (roundId) => {
+    const response = await productAPI.getSeatStatus(roundId)
 
+    // response.results값 체크
+    return response.results
+  },
 }
 
 // 좌석 정보륿 불러 온다.
@@ -113,7 +118,7 @@ const loadSeatInfo = async () => {
 
     const seatInfoResponse = await productAPI.getSeatDates({
       productId: paymentForm.value.productIdx,
-      roundTimeIdx: paymentForm.value.roundTimeIdx
+      roundTimeIdx: paymentForm.value.roundTimeIdx,
     })
 
     console.log(seatInfoResponse)
@@ -123,7 +128,6 @@ const loadSeatInfo = async () => {
       seatGrades.value = seatInfoResponse.results.seatGrades
       seats.value = seatInfoResponse.results.seatMap.flat()
     }
-
   } catch (error) {
     console.error('초기 데이터 로드 실패:', error)
     loadError.value = '서버 통신 중 오류가 발생했습니다.'
@@ -143,6 +147,14 @@ async function openBookingModal() {
 
     openModal.value = true
 
+    // if (datesData && datesData.length > 0) {
+    //   availableDatesResponse.value = datesData
+
+    // } else {
+    //   availableDatesResponse.value = []
+    //   calendarDates.value = []
+    // }
+
   } catch (error) {
     console.error('모달 열기 중 오류:', error)
   }
@@ -153,20 +165,18 @@ const totalPrice = computed(() =>
 )
 
 function toggleSeat(seat) {
-
   if (seat.isReserved) {
     return
   }
 
-  if (disabledSeats.value.includes(seat.name))
-    return
+  if (disabledSeats.value.includes(seat.name)) return
 
   const idx = selectedSeats.value.findIndex((s) => s.name === seat.name)
   if (idx >= 0) {
     selectedSeats.value.splice(idx, 1)
     // 좌석 해제 메시지 전송
     socket.value.send(
-      `/order/event/${eventIdx}/${selectedDate.value}/${paymentForm.value.roundTimeIdx}`,
+      `/order/seats/${eventIdx}/${selectedDate.value}${selectedTime.value.time}/select`,
       {},
       JSON.stringify({
         seatName: seat.name,
@@ -178,7 +188,7 @@ function toggleSeat(seat) {
     selectedSeats.value.push(seat)
     //좌석 선택 메시지 전송에 action 추가
     socket.value.send(
-      `/order/event/${eventIdx}/${selectedDate.value}/${paymentForm.value.roundTimeIdx}`,
+      `/order/seats/${eventIdx}/${selectedDate.value}${selectedTime.value.time}/select`,
       {},
       JSON.stringify({
         seatName: seat.name,
@@ -190,15 +200,69 @@ function toggleSeat(seat) {
 }
 
 async function nextStep() {
-
   // 달력에서 좌석으로 넘어갈 때
   if (step.value === 1) {
-    // if (!selectedDate.value) return alert('예매일을 선택하세요.')
-    // if (!selectedTime.value) return alert('회차를 선택하세요.')
+    if (!selectedDate.value) return alert('예매일을 선택하세요.')
+    if (!selectedTime.value) return alert('회차를 선택하세요.')
+
     step.value++
     connectWebSocket()
     loadSeatInfo()
     isBack.value = false
+    // 실시간 좌석 정보 불러오기
+
+    // availableDatesResponse : 특정 상품의 일정 및 회차 정보
+    console.log(availableDatesResponse)
+    // 선택된 날짜와 시간에 해당하는 회차 객체 저장
+    const selectedRoundInfo = availableDatesResponse.value.find(
+      (d) => d.date === selectedDate.value,
+    )
+    console.log(selectedRoundInfo)
+
+    // 선택된 날짜 or 시간의 회차 정보가 없을떄 오류 처리
+    if (!selectedRoundInfo) {
+      alert('선택된 날짜의 회차 정보를 찾을 수 없습니다.')
+      return
+    }
+
+    // 선택된 시간의 회차 정보 저장
+    const roundTimeInfo = selectedRoundInfo.roundTimes.find((rt) =>
+      rt.times.startsWith(selectedTime.value),
+    )
+
+    // 회차 정보 없을때 오류 처리
+    if (!roundTimeInfo) {
+      alert('선택된 시간의 회차 정보를 찾을 수 없습니다.')
+      return
+    }
+
+    // 백엔드와 변수 맞춰주기
+    // const roundId = `${selectedDate.value.replace(/-/g, '')}-${selectedTime.value.replace(/:/g, '')}`
+
+    const req = {
+      roundId: eventIdx,
+      date: selectedDate.value,
+      time: selectedTime.value,
+    }
+
+    // getSeatStatus 메소드를 실행
+    try {
+      const statusResponse = await productAPI.getSeatStatus(req)
+
+      // 응답 데이터로 좌석 상태를 업데이트
+      // statusResponse 객체의 키(key)는 좌석 이름, 값(value)은 상태입니다.
+      for (const [seatName, status] of Object.entries(statusResponse.results)) {
+        // 만약 좌석 상태가 'selecting'이고 `disabledSeats`에 포함되어 있지 않다면
+        // 해당 좌석을 `disabledSeats` 배열에 추가하여 다른 유저가 선택하지 못하도록 합니다.
+        if (status === 'select' && !disabledSeats.value.includes(seatName)) {
+          disabledSeats.value.push(seatName)
+          console.log(`다른 유저에 의해 선택된 좌석: ${seatName}`)
+        }
+      }
+    } catch (error) {
+      console.error('좌석 상태를 불러오는 중 오류 발생:', error)
+      alert('좌석 상태를 불러오는 중 오류가 발생했습니다.')
+    }
   } else if (step.value === 2) {
     // 좌석에서 수령 방법으로 넘어갈 때
     // if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
@@ -211,37 +275,30 @@ async function nextStep() {
 }
 
 function prevStep() {
-
   if (step.value > 1) {
-
     step.value--
 
     if (step.value == 1) {
-      if (isBack.value)
-        isBack.value = true
+      if (isBack.value) isBack.value = true
     }
   }
 }
 
 // 결제를 진행하는 메서드
 const onSubmit = async () => {
+  const validteResponse = await paymentAPI.validateSeats({
+    roundTimeIdx: 1,
+    seatIdxes: [10],
+  })
 
-  const validteResponse = await paymentAPI.validateSeats(
-    {
-      roundTimeIdx: 1,
-      seatIdxes: [10]
-    }
-  );
-
-  const successValidateSeats = validteResponse.success;
+  const successValidateSeats = validteResponse.success
 
   // 좌석 검증이 성공하면 결제 진행
   if (successValidateSeats) {
-
     // 서버에서 PaymentIdx를 받는다.
-    const paymentIdx = validteResponse.results.paymentIdx;
+    const paymentIdx = validteResponse.results.paymentIdx
 
-    paymentForm.value.seatIdxes = selectedSeats.value.map(seat => seat.idx)
+    paymentForm.value.seatIdxes = selectedSeats.value.map((seat) => seat.idx)
 
     const totalAmount = totalPrice.value
     // const productIdxList = selectedSeats.value.map((s) => s.name)
@@ -256,7 +313,7 @@ const onSubmit = async () => {
       customData: {
         productIdx: paymentForm.value.productIdx,
         roundTimeIdx: paymentForm.value.roundTimeIdx,
-        seatIdxes: paymentForm.value.seatIdxes
+        seatIdxes: paymentForm.value.seatIdxes,
       },
     })
 
@@ -265,9 +322,8 @@ const onSubmit = async () => {
     } else {
       console.log(paymentResponse.code)
     }
-
   } else {
-    console.log("결제 오류")
+    console.log('결제 오류')
     alert(validteResponse.message)
     return
   }
@@ -278,7 +334,7 @@ const selectedRoundDate = async (roundIdx) => {
   console.log(roundIdx)
   selectedDate.value = roundIdx
   const response = await productAPI.getRoundTimes({
-    dateId: roundIdx
+    dateId: roundIdx,
   })
 
   if (response.success) {
@@ -314,15 +370,15 @@ const selectRoundTime = () => {
 
           <!-- 예매일 선택 start -->
           <div v-if="step === 1" class="step-content d-flex gap-2">
-            <div class=" w-50">
+            <div class="w-50">
               <h4>예매일 선택</h4>
               <Calendar :product-id="Number(route.params.id)" :start-date="productDetail?.startDate"
                 :end-date="productDetail?.endDate" @round-date-id="selectedRoundDate"
                 :is-open-reservation-modal="openModal" :is-back="isBack" />
             </div>
             <div class="w-50 d-flex flex-column justify-content-between">
-              <div class=" w-100">
-                <h4 class=" mt-3">회차 선택</h4>
+              <div class="w-100">
+                <h4 class="mt-3">회차 선택</h4>
                 <select v-model="selectedTime" class="form-select w-100" @change="selectRoundTime">
                   <option disabled value="">회차를 선택하세요</option>
                   <option v-for="roundTime in roundTimes" :key="roundTime.time" :value="roundTime">
@@ -335,7 +391,6 @@ const selectRoundTime = () => {
                   {{ step === 3 ? '결제하기' : '다음' }}
                 </button>
               </div>
-
             </div>
           </div>
           <!-- 예매일 선택 end -->
@@ -366,7 +421,7 @@ const selectRoundTime = () => {
                   {{ grade.grade }}석 - {{ grade.priceInfo.priceFormat }}
                 </div>
               </div>
-              <div class="seat-grid ">
+              <div class="seat-grid">
                 <div v-for="seat in seats" :key="seat.name" :class="[
                   'seat',
                   seat.grade.toLowerCase(),
@@ -395,9 +450,7 @@ const selectRoundTime = () => {
                 <button class="btn btn-dark btn-lg" @click="nextStep">
                   {{ step === 3 ? '결제하기' : '다음' }}
                 </button>
-                <button class="btn btn-light border btn-lg" @click="prevStep">
-                  이전
-                </button>
+                <button class="btn btn-light border btn-lg" @click="prevStep">이전</button>
               </div>
             </div>
           </div>
@@ -405,7 +458,7 @@ const selectRoundTime = () => {
 
           <!-- 티켓 수령 방법 start -->
           <div v-if="step === 3" class="step-content d-flex gap-2">
-            <div class="d-flex flex-column gap-2 w-100 justify-content-between ">
+            <div class="d-flex flex-column gap-2 w-100 justify-content-between">
               <h4 class="text-center">구매한 티켓은 현장에서 발급받을 수 있습니다.</h4>
 
               <div class="summary d-flex flex-column gap-2 justify-content-between">
@@ -420,12 +473,8 @@ const selectRoundTime = () => {
                 <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
               </div>
               <div class="d-flex gap-2 flex-column w-100">
-                <button class="btn btn-dark btn-lg" @click="nextStep">
-                  결제하기
-                </button>
-                <button class="btn btn-light border btn-lg" @click="prevStep">
-                  이전
-                </button>
+                <button class="btn btn-dark btn-lg" @click="nextStep">결제하기</button>
+                <button class="btn btn-light border btn-lg" @click="prevStep">이전</button>
               </div>
             </div>
           </div>
