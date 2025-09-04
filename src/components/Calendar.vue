@@ -1,35 +1,28 @@
-<script setup lang="ts">
+<script setup>
 import { useDate } from '@/utils/useDate'
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import productAPI from '@/api/product/index'
 
 const props = defineProps({
   productId: Number,
   startDate: String,
   endDate: String,
-  isOpenReservationModal: Boolean
+  isOpenReservationModal: Boolean,
+  isBack: Boolean
 })
 
-const emit = defineEmits(['date', 'roundTimes', 'roundDateId'])
-
-interface DateOfMonth {
-  value: number,
-  type: string
-}
+const emit = defineEmits(['roundDateId'])
 
 const dayOfWeeks = ref(["일", "월", "화", "수", "목", "금", "토"])
-const { getYearAndMonth } = useDate()
+const { getYearAndMonth, getDateOfCurDate } = useDate()
 const curDate = ref(new Date())
 const yearAndMonth = ref("")
-const dateOfMonths = ref<DateOfMonth[]>([])
+const dateOfMonths = ref([])
 
 const rounds = ref([]);
 const getRoundDates = () => rounds.value.map(r => r.date)
 
-onMounted(async () => {
-  curDate.value = new Date()
-  yearAndMonth.value = getYearAndMonth(curDate.value)
-  getDatesOfMonth(curDate.value)
+const openCalander = async () => {
 
   const response = await productAPI.getRoundDates({
     productId: props.productId
@@ -38,16 +31,36 @@ onMounted(async () => {
   if (response.success) {
     console.log(response.results)
     rounds.value = response.results.dates
-    findSelectRoundDates(curDate)
+    // findSelectRoundDates(curDate)
+  }
+
+  const leastDate = rounds.value[0].date
+  console.log(leastDate)
+  const split = leastDate.split('-');
+
+  curDate.value = new Date(split[0], split[1] - 1, split[2])
+  yearAndMonth.value = getYearAndMonth(curDate.value)
+  getDatesOfMonth(curDate.value)
+  findRoundDate()
+}
+
+watch(() => props.isOpenReservationModal, (newValue) => {
+  if (newValue) {
+    openCalander()
   }
 })
 
+watch(() => props.isBack, () => {
+  openCalander()
+})
 
 const onClickPrevMonth = () => {
 
+  // 이전 달의 1일 Date 객체
   const toDate = new Date(curDate.value.getFullYear(), curDate.value.getMonth() - 1, 1)
 
-  if (toDate.getMonth() < new Date(props.startDate).getMonth()) {
+  // 이동하려는 Date 월이 공연 시작 월보다 작으면 return
+  if (toDate.getMonth() < new Date(props.startDate).getMonth() + 1) {
     return;
   }
 
@@ -68,7 +81,8 @@ const onClickNextMonth = () => {
   getDatesOfMonth(curDate.value)
 }
 
-const getDatesOfMonth = (targetDate: Date) => {
+// 해당 월의 일들을 구한다.(1 ~ 31, 30)
+const getDatesOfMonth = (targetDate) => {
 
   dateOfMonths.value = []
 
@@ -91,16 +105,17 @@ const getDatesOfMonth = (targetDate: Date) => {
   }
 }
 
-const isPrevOrNextDate = (date: DateOfMonth) => date.type !== 'cur'
+const isPrevOrNextDate = (date) => date.type !== 'cur'
 
-const isSunday = (date: DateOfMonth, index: number) => !isPrevOrNextDate(date) && index % 7 === 0
+const isSunday = (date, index) => !isPrevOrNextDate(date) && index % 7 === 0
 
-const isSelectedDate = (date: DateOfMonth) => {
+const isSelectedDate = (date) => {
   return date.value === curDate.value.getDate() &&
     date.type === 'cur'
 }
 
-const selectDate = (date: DateOfMonth) => {
+const selectDate = (date) => {
+  console.log(date)
 
   let year = curDate.value.getFullYear()
   let month = curDate.value.getMonth()
@@ -120,7 +135,8 @@ const selectDate = (date: DateOfMonth) => {
     curDate.value = new Date(year, month, date.value)
   }
 
-  findSelectRoundDates(curDate)
+  findRoundDate(curDate)
+
 }
 
 const findSelectRoundDates = (selectedDated) => {
@@ -160,6 +176,15 @@ const isActiveDate = (date) => {
   ].join('-')
 
   return getRoundDates().includes(cDate);
+}
+
+const findRoundDate = () => {
+  const findRound = rounds.value.find((round) => {
+    const roundDate = getDateOfCurDate(round.date)
+
+    return roundDate.getTime() === curDate.value.getTime()
+  })
+  emit('roundDateId', findRound.idx)
 }
 </script>
 

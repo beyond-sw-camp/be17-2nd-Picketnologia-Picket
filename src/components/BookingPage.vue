@@ -1,4 +1,3 @@
-e
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
@@ -16,10 +15,16 @@ const router = useRouter()
 const route = useRoute()
 const eventIdx = route.params.id // URL에서 상품 ID 가져오기
 
+const props = defineProps({
+  productName: String
+})
+
 const openModal = ref(false); // 예매 모달창 오픈 여부
+const isBack = ref(false)
 const closeModal = () => {
-  console.log("모달창 종료")
-  openModal.value = false
+  step.value = 1;
+  paymentForm.value.roundTimeIdx = ''
+  paymentForm.value.seatIdxes = []
 }
 
 const productDetail = ref(null)
@@ -36,6 +41,15 @@ const seats = ref([])
 const isLoading = ref(true)
 const loadError = ref(null)
 
+const roundTimes = ref([])
+
+// 결제 정보 FORM
+const paymentForm = ref({
+  productIdx: route.params.id,
+  roundTimeIdx: '',
+  seatIdxes: []
+})
+
 // 사용자 정보
 const userStore = useUserStore()
 const myNickname = userStore.nickname
@@ -49,7 +63,7 @@ const connectWebSocket = () => {
     {},
     (frame) => {
       client.subscribe(
-        `/product/${eventIdx}/${selectedDate.value}/${selectedTime.value}`,
+        `/product/${eventIdx}/${selectedDate.value}/${paymentForm.value.roundTimeIdx}`,
         (msg) => {
           const received = JSON.parse(msg.body)
           const { seatName, sender, action } = received
@@ -92,45 +106,24 @@ const api = {
 
 }
 
-// === 컴포넌트 마운트 시 데이터 로드 ===
-// onMounted(async () => {
-//   try {
-//     isLoading.value = true // 로딩 상태 시작
-//     // 1. 좌석 등급 및 좌석 맵 정보 불러오기
-//     const seatInfoResponse = await api.getSeatDates(eventIdx)
-//     console.log('API 응답에서 가져온 seatInfoResponse:', seatInfoResponse) // 디버깅용
-
-//     // seatInfoResponse.seatGrades와 seatInfoResponse.seatMap
-//     if (seatInfoResponse && seatInfoResponse.seatGrades && seatInfoResponse.seatMap) {
-//       // 2. 좌석 등급 정보 할당
-//       seatGrades.value = seatInfoResponse.seatGrades
-
-//       // 3. 좌석 맵 데이터 할당 (2차원 배열을 1차원 배열로 변환)
-//       const allSeats = seatInfoResponse.seatMap.flat()
-//       seats.value = allSeats
-//       console.log('좌석 맵 데이터 불러오기 성공:', seats.value)
-//     } else {
-//       console.error('좌석 등급 또는 좌석 맵 정보를 불러오는 데 실패했습니다.')
-//       loadError.value = '좌석 정보를 불러올 수 없습니다. 다시 시도해 주세요.'
-//     }
-//   } catch (error) {
-//     console.error('초기 데이터 로드 실패:', error)
-//     loadError.value = '서버 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
-//   } finally {
-//     isLoading.value = false // 로딩 상태 종료
-//   }
-// })
-
+// 좌석 정보륿 불러 온다.
 const loadSeatInfo = async () => {
   try {
     isLoading.value = true
-    const seatInfoResponse = await api.getSeatDates(eventIdx)
-    if (seatInfoResponse && seatInfoResponse.seatGrades && seatInfoResponse.seatMap) {
-      seatGrades.value = seatInfoResponse.seatGrades
-      seats.value = seatInfoResponse.seatMap.flat()
-    } else {
-      loadError.value = '좌석 정보를 불러올 수 없습니다.'
+
+    const seatInfoResponse = await productAPI.getSeatDates({
+      productId: paymentForm.value.productIdx,
+      roundTimeIdx: paymentForm.value.roundTimeIdx
+    })
+
+    console.log(seatInfoResponse)
+
+    if (seatInfoResponse.success) {
+      console.log(seatInfoResponse)
+      seatGrades.value = seatInfoResponse.results.seatGrades
+      seats.value = seatInfoResponse.results.seatMap.flat()
     }
+
   } catch (error) {
     console.error('초기 데이터 로드 실패:', error)
     loadError.value = '서버 통신 중 오류가 발생했습니다.'
@@ -141,68 +134,41 @@ const loadSeatInfo = async () => {
 
 async function openBookingModal() {
   try {
-    productDetail.value = await api.getProductDetail(eventIdx)
-    const datesData = await api.getAvailableDates(eventIdx)
 
-    if (datesData && datesData.length > 0) {
-      availableDatesResponse.value = datesData
+    openModal.value = true
 
-      const firstAvailableDate = availableDatesResponse.value[0].date
-      const [year, month] = firstAvailableDate.split('-').map(Number)
-      const daysInMonth = new Date(year, month, 0).getDate()
-      const baseDate = `${year}-${String(month).padStart(2, '0')}`
-      const today = new Date().toISOString().slice(0, 10)
+    // if (datesData && datesData.length > 0) {
+    //   availableDatesResponse.value = datesData
 
-      calendarDates.value = Array.from({ length: daysInMonth }, (_, i) => {
-        const day = i + 1
-        const fullDate = `${baseDate}-${String(day).padStart(2, '0')}`
-        const dateInfo = availableDatesResponse.value.find((d) => d.date === fullDate)
+    // } else {
+    //   availableDatesResponse.value = []
+    //   calendarDates.value = []
+    // }
 
-        return {
-          day,
-          fullDate,
-          isAvailable: !!dateInfo,
-          isSelected: false,
-          isToday: fullDate === today,
-        }
-      })
-    } else {
-      availableDatesResponse.value = []
-      calendarDates.value = []
-    }
-
-    const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'))
-    bookingModal.show()
   } catch (error) {
     console.error('모달 열기 중 오류:', error)
   }
 }
 
-const currentDayTimeslots = computed(() => {
-  const selected = availableDatesResponse.value.find((d) => d.date === selectedDate.value)
-  return selected ? selected.roundTimes.map((rt) => ({ time: rt.times.slice(0, 5) })) : []
-})
-
 const totalPrice = computed(() =>
   selectedSeats.value.reduce((sum, s) => sum + s.priceInfo.price, 0),
 )
 
-function selectDate(date) {
-  if (!date.isAvailable) return
-  calendarDates.value.forEach((d) => (d.isSelected = false))
-  date.isSelected = true
-  selectedDate.value = date.fullDate
-  selectedTime.value = ''
-}
-
 function toggleSeat(seat) {
-  if (disabledSeats.value.includes(seat.name)) return
+
+  if (seat.isReserved) {
+    return
+  }
+
+  if (disabledSeats.value.includes(seat.name))
+    return
+
   const idx = selectedSeats.value.findIndex((s) => s.name === seat.name)
   if (idx >= 0) {
     selectedSeats.value.splice(idx, 1)
     // 좌석 해제 메시지 전송
     socket.value.send(
-      `/order/event/${eventIdx}/${selectedDate.value}/${selectedTime.value}`,
+      `/order/event/${eventIdx}/${selectedDate.value}/${paymentForm.value.roundTimeIdx}`,
       {},
       JSON.stringify({
         seatName: seat.name,
@@ -214,7 +180,7 @@ function toggleSeat(seat) {
     selectedSeats.value.push(seat)
     //좌석 선택 메시지 전송에 action 추가
     socket.value.send(
-      `/order/event/${eventIdx}/${selectedDate.value}/${selectedTime.value}`,
+      `/order/event/${eventIdx}/${selectedDate.value}/${paymentForm.value.roundTimeIdx}`,
       {},
       JSON.stringify({
         seatName: seat.name,
@@ -226,31 +192,40 @@ function toggleSeat(seat) {
 }
 
 async function nextStep() {
+
+  // 달력에서 좌석으로 넘어갈 때
   if (step.value === 1) {
     // if (!selectedDate.value) return alert('예매일을 선택하세요.')
     // if (!selectedTime.value) return alert('회차를 선택하세요.')
     step.value++
     connectWebSocket()
-  } else if (step.value === 2) {
     loadSeatInfo()
+    isBack.value = false
+  } else if (step.value === 2) {
+    // 좌석에서 수령 방법으로 넘어갈 때
     // if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
     step.value++
   } else if (step.value === 3) {
+    // 수령 선택 화면에서 결제 시도 할 때
     // if (!deliveryMethod.value) return alert('수령 방식을 선택하세요.')
     await onSubmit()
   }
 }
 
 function prevStep() {
-  if (step.value > 1) step.value--
+
+  if (step.value > 1) {
+
+    step.value--
+
+    if (step.value == 1) {
+      if (isBack.value)
+        isBack.value = true
+    }
+  }
 }
 
-const randomId = () => {
-  return [...crypto.getRandomValues(new Uint32Array(2))]
-    .map((word) => word.toString(16).padStart(8, '0'))
-    .join('')
-}
-
+// 결제를 진행하는 메서드
 const onSubmit = async () => {
 
   const validteResponse = await paymentAPI.validateSeats(
@@ -261,25 +236,29 @@ const onSubmit = async () => {
   );
 
   const successValidateSeats = validteResponse.success;
+
+  // 좌석 검증이 성공하면 결제 진행
   if (successValidateSeats) {
+
+    // 서버에서 PaymentIdx를 받는다.
     const paymentIdx = validteResponse.results.paymentIdx;
+
+    paymentForm.value.seatIdxes = selectedSeats.value.map(seat => seat.idx)
+
     const totalAmount = totalPrice.value
-    const productIdxList = selectedSeats.value.map((s) => s.name)
-    const paymentId = randomId()
+    // const productIdxList = selectedSeats.value.map((s) => s.name)
     const paymentResponse = await PortOne.requestPayment({
       storeId: 'store-1ced0aba-9a78-47c4-a424-d03a4685fdd7',
       channelKey: 'channel-key-31b66752-13a4-429f-8a6f-ec087910a6d9',
       paymentId: paymentIdx,
-      orderName: productDetail.value.name,
-      totalAmount: 100000,
+      orderName: props.productName,
+      totalAmount: totalAmount,
       currency: 'KRW',
       payMethod: 'CARD',
       customData: {
-        productIdx: 1,
-        roundTimeIdx: 1,
-        seatIdxes: [
-          10
-        ]
+        productIdx: paymentForm.value.productIdx,
+        roundTimeIdx: paymentForm.value.roundTimeIdx,
+        seatIdxes: paymentForm.value.seatIdxes
       },
     })
 
@@ -296,16 +275,29 @@ const onSubmit = async () => {
   }
 }
 
-const emitRoundTime = (roundTimes) => {
-  availableDatesResponse.value = roundTimes
+// 달력 컴포넌트에서 선택한 회차 날짜를 emit 받는 메서드
+const selectedRoundDate = async (roundIdx) => {
+  console.log(roundIdx)
+  selectedDate.value = roundIdx
+  const response = await productAPI.getRoundTimes({
+    dateId: roundIdx
+  })
+
+  if (response.success) {
+    roundTimes.value = response.results.times
+  }
+}
+
+const selectRoundTime = () => {
+  paymentForm.value.roundTimeIdx = selectedTime.value.idx
 }
 </script>
 
 <template>
-  <!-- <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow" data-bs-target="#staticBackdrop"
+  <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow" data-bs-target="#staticBackdrop"
     data-bs-toggle="modal">
     예매하기
-  </button> -->
+  </button>
 
   <div class="modal fade" id="staticBackdrop" tabindex="-1" aria-hidden="true" aria-labelledby="staticBackdropLabel"
     data-bs-backdrop="static" data-bs-keyboard="false">
@@ -313,29 +305,30 @@ const emitRoundTime = (roundTimes) => {
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="staticBackdropLabel">티켓 예매</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" @click="closeModal"></button>
         </div>
         <div class="modal-body">
           <div class="steps mb-3">
             <div :class="['step', { active: step === 1 }]">Step 1<br />날짜 및 회차</div>
             <div :class="['step', { active: step === 2 }]">Step 2<br />좌석 선택</div>
-            <div :class="['step', { active: step === 3 }]">Step 3<br />수령 방법</div>
+            <div :class="['step', { active: step === 3 }]">Step 3<br />최종 확인</div>
           </div>
 
           <!-- 예매일 선택 start -->
           <div v-if="step === 1" class="step-content d-flex gap-2">
             <div class=" w-50">
               <h4>예매일 선택</h4>
-              <Calendar :product-id="route.params.id" :start-date="productDetail?.startDate"
-                :end-date="productDetail?.endDate" @round-times="emitRoundTime" />
+              <Calendar :product-id="Number(route.params.id)" :start-date="productDetail?.startDate"
+                :end-date="productDetail?.endDate" @round-date-id="selectedRoundDate"
+                :is-open-reservation-modal="openModal" :is-back="isBack" />
             </div>
             <div class="w-50 d-flex flex-column justify-content-between">
               <div class=" w-100">
                 <h4 class=" mt-3">회차 선택</h4>
-                <select v-model="selectedTime" class="form-select w-100">
+                <select v-model="selectedTime" class="form-select w-100" @change="selectRoundTime">
                   <option disabled value="">회차를 선택하세요</option>
-                  <option v-for="slot in currentDayTimeslots" :key="slot.time" :value="slot.time">
-                    {{ slot.time }}
+                  <option v-for="roundTime in roundTimes" :key="roundTime.time" :value="roundTime">
+                    {{ roundTime.time }}
                   </option>
                 </select>
               </div>
@@ -381,7 +374,7 @@ const emitRoundTime = (roundTimes) => {
                   seat.grade.toLowerCase(),
                   {
                     selected: selectedSeats.some((s) => s.name === seat.name),
-                    disabled: disabledSeats.includes(seat.name),
+                    disabled: disabledSeats.includes(seat.name) || seat.isReserved,
                   },
                 ]" @click="toggleSeat(seat)">
                   {{ seat.name }}
@@ -392,12 +385,12 @@ const emitRoundTime = (roundTimes) => {
               <div class="summary d-flex flex-column gap-2 justify-content-between">
                 <h5>예매 요약</h5>
                 <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
-                <p><strong>회차:</strong> {{ selectedTime || '선택 안 됨' }}</p>
+                <p><strong>회차:</strong> {{ selectedTime.time || '선택 안 됨' }}</p>
                 <p>
                   <strong>좌석:</strong>
                   {{selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨'}}
                 </p>
-                <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p>
+                <!-- <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p> -->
                 <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
               </div>
               <div class="d-flex gap-2 flex-column w-100">
@@ -414,25 +407,18 @@ const emitRoundTime = (roundTimes) => {
 
           <!-- 티켓 수령 방법 start -->
           <div v-if="step === 3" class="step-content d-flex gap-2">
-            <div class="w-100">
-              <h4>수령 방법</h4>
-              <label><input type="radio" v-model="deliveryMethod" value="현장 수령" /> 현장 수령</label>
-              <label class="ms-3"><input type="radio" v-model="deliveryMethod" value="QR 코드" /> QR 코드</label>
-              <p><input type="text" class="form-control" placeholder="이름" /></p>
-              <p><input type="text" class="form-control" placeholder="긴급 연락처" /></p>
-              <p><input type="text" class="form-control" placeholder="e-mail" /></p>
-            </div>
+            <div class="d-flex flex-column gap-2 w-100 justify-content-between ">
+              <h4 class="text-center">구매한 티켓은 현장에서 발급받을 수 있습니다.</h4>
 
-            <div class="d-flex flex-column gap-2 w-75 justify-content-between">
               <div class="summary d-flex flex-column gap-2 justify-content-between">
                 <h5>예매 요약</h5>
                 <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
-                <p><strong>회차:</strong> {{ selectedTime || '선택 안 됨' }}</p>
+                <p><strong>회차:</strong> {{ selectedTime.time || '선택 안 됨' }}</p>
                 <p>
                   <strong>좌석:</strong>
                   {{selectedSeats.map((s) => s.name).join(', ') || '선택 안 됨'}}
                 </p>
-                <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p>
+                <!-- <p><strong>수령 방법:</strong> {{ deliveryMethod || '선택 안 됨' }}</p> -->
                 <p><strong>총 금액:</strong> {{ totalPrice.toLocaleString() }} 원</p>
               </div>
               <div class="d-flex gap-2 flex-column w-100">
@@ -445,14 +431,6 @@ const emitRoundTime = (roundTimes) => {
               </div>
             </div>
           </div>
-          <!-- 티켓 수령 방법 start -->
-
-          <!-- <div class="modal-footer">
-            <button class="btn btn-secondary" @click="prevStep" :disabled="step === 1">이전</button>
-            <button class="btn btn-primary" @click="nextStep">
-              {{ step === 3 ? '결제하기' : '다음' }}
-            </button>
-          </div> -->
         </div>
       </div>
     </div>
