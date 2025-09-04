@@ -103,6 +103,22 @@ const getRoundDates = async (req) => {
   return data
 }
 
+const searchAndSort = async (params) => {
+  let data = {};
+  let url = '/api/products/searchAndSort';
+
+  await api.get(url, { params })
+    .then((res) => {
+      data = res.data;
+    })
+    .catch((error) => {
+      data = error.data;
+    });
+
+  return data;
+
+}
+
 const getRoundTimes = async (req) => {
   let data = {}
   const url = '/api/round/time?date=' + req.dateId
@@ -126,5 +142,6 @@ export default {
   getAvailableDates,
   getSeatDates,
   getRoundDates,
+  searchAndSort,
   getRoundTimes,
 }
