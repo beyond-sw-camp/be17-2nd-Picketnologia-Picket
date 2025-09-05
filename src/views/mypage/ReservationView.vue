@@ -1,9 +1,33 @@
 <script setup>
-import { useUserStore } from '@/stores/useUserStore';
-import review from '@/api/review';
+import reservation from '@/api/reservation';
+import { ref } from 'vue';
+
+const reservations = ref([]);
+const startDate = ref('');
+const endDate = ref('');
+
+const myPageReservation = async () => {
+    const dateInfo = {
+        startDate: startDate.value,
+        endDate: endDate.value
+    }
+    try {
+        const response = await reservation.reservationIdxList(dateInfo);
+
+        reservations.value = response.results.map(reservation => ({
+            ...reservation,
+            isExpanded: false
+
+        }));
 
 
-
+        if (reservations.value.length == 0) {
+            alert('해당기간에 예매한적이  없습니다.');
+        }
+    } catch (error) {
+        console.error('예매조회를 불러오는 데 실패했습니다.', error);
+    }
+}
 </script>
 
 <template>
@@ -15,7 +39,7 @@ import review from '@/api/review';
             <input type="date" v-model="startDate" class="form-control form-control-sm" style="max-width: 150px;" />
             <span>~</span>
             <input type="date" v-model="endDate" class="form-control form-control-sm" style="max-width: 150px;" />
-            <button class="btn btn-outline-primary btn-sm">조회</button>
+            <button class="btn btn-outline-primary btn-sm" @click="myPageReservation">조회</button>
         </div>
 
         <div class="table-responsive">
@@ -32,13 +56,13 @@ import review from '@/api/review';
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(results, index) in bookings" :key="index">
-                        <td><small>{{ item.date }}</small></td>
-                        <td><small>{{ item.number }}</small></td>
-                        <td><small v-html="item.title"></small></td>
-                        <td><small>{{ item.time }}</small></td>
-                        <td><small>{{ item.seat }}</small></td>
-                        <td><small>{{ item.quantity }}</small></td>
+                    <tr v-for="(reservation, index) in reservations" :key="index">
+                        <td><small>{{ reservation.paidAt }}</small></td>
+                        <td><small>{{ reservation.paymentIdx }}</small></td>
+                        <td><small>{{ reservation.productName }}</small></td>
+                        <td><small>{{ reservation.paidAt }}</small></td>
+                        <td><small>{{ reservation.paidAt }}</small></td>
+                        <td><small>{{ reservation.paidAt }}</small></td>
                         <td><button class="btn btn-outline-dark btn-sm">예매확인</button></td>
                     </tr>
                 </tbody>
