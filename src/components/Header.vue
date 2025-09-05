@@ -69,7 +69,8 @@ onMounted(async () => {
             <Logo />
           </div>
           <div class="position-relative align-self-end" style="max-width: 400px; width: 100%;" v-show="!props.onlyLogo">
-            <input type="text" class="form-control pe-5" placeholder="공연을 검색하세요." v-model="searchForm.name">
+            <input type="text" class="form-control pe-5" @keyup.enter="searchName(searchForm.name)"
+              placeholder=" 공연을검색하세요." v-model="searchForm.name">
             <img src="@/assets/icons/search.png" alt="search icon"
               class="position-absolute top-50 end-0 translate-middle-y me-3 text-muted"
               @click="searchName(searchForm.name)">

@@ -37,13 +37,15 @@ const login = async () => {
 
                                 <div class="form-floating mb-3">
                                     <input type="email" class="form-control form-control-lg" id="floatingInput"
-                                        placeholder="name@example.com" required v-model="loginUser.email">
+                                        @keyup.enter="login" placeholder="name@example.com" required
+                                        v-model="loginUser.email">
                                     <label for="floatingInput">이메일 주소</label>
                                 </div>
 
                                 <div class="form-floating mb-3">
                                     <input type="password" class="form-control form-control-lg" id="floatingPassword"
-                                        placeholder="Password" required v-model="loginUser.password">
+                                        @keyup.enter="login" placeholder="Password" required
+                                        v-model="loginUser.password">
                                     <label for="floatingPassword">비밀번호</label>
                                 </div>
                                 <button class="btn btn-primary w-100 py-2 mt-4" type="button" @click="login">
