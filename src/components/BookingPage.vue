@@ -56,7 +56,9 @@ const myNickname = userStore.nickname
 
 const socket = ref(null)
 const connectWebSocket = () => {
-  const ws = new WebSocket('ws://localhost:8080/websocket')
+  const ws = new WebSocket(import.meta.env.VITE_WS_URL)
+  // const ws = new WebSocket('ws://localhost:8080/websocket')
+  // const ws = new WebSocket('wss://www.picket.o-r.kr/websocket')
   const client = Stomp.over(ws)
   socket.value = client
   client.connect(
