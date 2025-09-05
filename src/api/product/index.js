@@ -104,19 +104,19 @@ const getRoundDates = async (req) => {
 }
 
 const searchAndSort = async (params) => {
-  let data = {};
-  let url = '/api/products/searchAndSort';
+  let data = {}
+  let url = '/api/products/searchAndSort'
 
-  await api.get(url, { params })
+  await api
+    .get(url, { params })
     .then((res) => {
-      data = res.data;
+      data = res.data
     })
     .catch((error) => {
-      data = error.data;
-    });
+      data = error.data
+    })
 
-  return data;
-
+  return data
 }
 
 const getRoundTimes = async (req) => {
@@ -135,13 +135,47 @@ const getRoundTimes = async (req) => {
   return data
 }
 
+const getSeatStatus = async (req) => {
+  let data = {}
+  const url = `/api/round/seat-status/${req.roundId}/${req.date}${req.time}`
+
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.response.data
+    })
+
+  return data
+}
+
+const getSeatStatusV2 = async (req) => {
+  let data = {}
+  const url = `/api/round/seat-status/${req.roundTimeIdx}`
+
+  await api
+    .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.response.data
+    })
+
+  return data
+}
+
 export default {
   getProducts,
   getProductDetail,
   addProduct,
   getAvailableDates,
   getSeatDates,
+  getSeatStatus,
   getRoundDates,
   searchAndSort,
   getRoundTimes,
+  getSeatStatusV2,
 }
