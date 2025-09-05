@@ -11,6 +11,20 @@ import qna from '@/api/qna';
 const route = useRoute()
 const userStore = useUserStore();
 
+const replyingTo = ref(null);
+const replyContent = ref('');
+
+const toggleReplyForm = (qnaIdx) => {
+    if (replyingTo.value === qnaIdx) {
+        replyingTo.value = null;
+    } else {
+        replyingTo.value = qnaIdx;
+        replyContent.value = '';
+    }
+};
+
+
+
 const loginCheck = () => {
 
     if (!userStore.isLogin) {
@@ -123,7 +137,7 @@ const onSubmitQna = async () => {
 
 
 const reviews = ref([]);
-const qnas = ref({});
+const qnas = ref([]);
 const totalPages = ref(0);
 const currentPage = ref(1);
 const totalCount = ref(0);
@@ -388,7 +402,7 @@ const formatDate = (dateString) => {
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">후기 작성하기</h5>
-                    <form @submit.prevent="onSubmit">
+                    <form @submit.prevent="onSubmit" @keyup.enter="onSubmit">
 
 
                         <div class="form-group">
@@ -513,7 +527,7 @@ const formatDate = (dateString) => {
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title">문의 작성하기</h5>
-                <form @submit.prevent="onSubmitQna">
+                <form @submit.prevent="onSubmitQna" @keyup.enter="onSubmitQna">
                     <div class="form-group">
                         <label for="qnaQuestion">문의 제목</label>
                         <textarea class="form-control" id="qnaQuestiontitle" rows="1" v-model="qnaForm.title"
@@ -560,17 +574,33 @@ const formatDate = (dateString) => {
                         </div>
                     </h5>
 
-                    <div v-for="qna in qnas" :key="qna.id" class="list-group-item">
+                    <div v-for="qna in qnas" :key="qna.idx" class="list-group-item">
                         <div class="d-flex w-100 justify-content-between">
                             <strong>{{ qna.userNickName }}</strong>
                             <small class="text-muted">{{ formatDate(qna.createdAt) }}</small>
                         </div>
                         <p class="mb-1">{{ qna.title }}</p>
                         <p class="mb-1">{{ qna.contents }}</p>
+
+                        <!-- 답변 UI 추가 -->
+                        <div class="d-flex justify-content-end mt-2">
+                            <button @click="toggleReplyForm(qna.idx)" class="btn btn-sm btn-outline-primary">답변
+                                달기</button>
+                        </div>
+
+                        <!-- 답변 입력 폼 -->
+                        <div v-if="replyingTo === qna.idx" class="mt-3">
+                            <textarea class="form-control" rows="3" placeholder="답변을 입력하세요..."
+                                v-model="replyContent"></textarea>
+                            <div class="d-flex justify-content-end mt-2">
+                                <button @click="submitReply(qna.idx)" class="btn btn-sm btn-primary">답변 등록</button>
+                                <button @click="replyingTo = null" class="btn btn-sm btn-secondary ms-2">취소</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 리뷰가 없을 때 -->
+                <!-- QnA가 없을 때 -->
                 <div v-else>
                     <h5>후기 목록</h5>
                     <p class="text-muted">리뷰가 없습니다.</p>
@@ -578,19 +608,19 @@ const formatDate = (dateString) => {
             </div>
 
             <!-- 페이지네이션 -->
-            <nav v-if="totalPages > 1" class="mt-4">
+            <nav v-if="totalPagesQna > 1" class="mt-4">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                        <button class="page-link" @click="loadQnas(currentPage - 1)">이전</button>
+                    <li class="page-item" :class="{ disabled: currentPageQna === 1 }">
+                        <button class="page-link" @click="loadQnas(currentPageQna - 1)">이전</button>
                     </li>
 
-                    <li v-for="page in totalPages" :key="page" class="page-item"
-                        :class="{ active: page === currentPage }">
+                    <li v-for="page in totalPagesQna" :key="page" class="page-item"
+                        :class="{ active: page === currentPageQna }">
                         <button class="page-link" @click="loadQnas(page)">{{ page }}</button>
                     </li>
 
-                    <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                        <button class="page-link" @click="loadQnas(currentPage + 1)">다음</button>
+                    <li class="page-item" :class="{ disabled: currentPageQna === totalPagesQna }">
+                        <button class="page-link" @click="loadQnas(currentPageQna + 1)">다음</button>
                     </li>
                 </ul>
             </nav>
