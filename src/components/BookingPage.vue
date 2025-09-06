@@ -1,11 +1,9 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/useUserStore'
-import axios from 'axios'
 import Stomp from 'stompjs'
 import PortOne from '@portone/browser-sdk/v2'
-import * as bootstrap from 'bootstrap'
 import Calendar from '@/components/Calendar.vue'
 
 import productAPI from '@/api/product'
@@ -13,7 +11,6 @@ import paymentAPI from '@/api/payment'
 
 const router = useRouter()
 const route = useRoute()
-const eventIdx = route.params.id // URL에서 상품 ID 가져오기
 
 const props = defineProps({
   productName: String,
@@ -25,17 +22,31 @@ const closeModal = () => {
   step.value = 1
   paymentForm.value.roundTimeIdx = ''
   paymentForm.value.seatIdxes = []
+  openModal.value = false
+  selectedDate.value = ''
+  selectedTime.value = ''
+}
+
+const bookingPageReset = () => {
+  selectedDate.value = ''
+  selectedTime.value = ''
+  seatGrades.value = ''
+  selectedSeats.value = []
+  disabledSeats.value = []
+  seats.value = []
+  isLoading.value = true
+  loadError.value = null
+
+  roundTimes.value = []
+
 }
 
 const productDetail = ref(null)
-const availableDatesResponse = ref([])
-const calendarDates = ref([])
 const selectedDate = ref('')
 const selectedTime = ref('')
 const seatGrades = ref([])
 const selectedSeats = ref([])
 const disabledSeats = ref([])
-const deliveryMethod = ref('')
 const step = ref(1)
 const seats = ref([])
 const isLoading = ref(true)
@@ -57,8 +68,6 @@ const myNickname = userStore.nickname
 const socket = ref(null)
 const connectWebSocket = () => {
   const ws = new WebSocket(import.meta.env.VITE_WS_URL)
-  // const ws = new WebSocket('ws://localhost:8080/websocket')
-  // const ws = new WebSocket('wss://www.picket.o-r.kr/websocket')
   const client = Stomp.over(ws)
   socket.value = client
   client.connect(
@@ -92,26 +101,26 @@ const connectWebSocket = () => {
   )
 }
 
-const api = {
-  getProductDetail: async (id) => {
-    const response = await productAPI.getProductDetail({ productId: id })
-    return response.results
-  },
-  getAvailableDates: async (id) => {
-    const response = await productAPI.getAvailableDates({ id })
-    return response.results
-  },
-  getSeatDates: async (id) => {
-    const response = await productAPI.getSeatDates({ productId: id })
-    return response.results
-  },
-  getSeatStatus: async (roundId) => {
-    const response = await productAPI.getSeatStatus(roundId)
+// const api = {
+//   getProductDetail: async (id) => {
+//     const response = await productAPI.getProductDetail({ productId: id })
+//     return response.results
+//   },
+//   getAvailableDates: async (id) => {
+//     const response = await productAPI.getAvailableDates({ id })
+//     return response.results
+//   },
+//   getSeatDates: async (id) => {
+//     const response = await productAPI.getSeatDates({ productId: id })
+//     return response.results
+//   },
+//   getSeatStatus: async (roundId) => {
+//     const response = await productAPI.getSeatStatus(roundId)
 
-    // response.results값 체크
-    return response.results
-  },
-}
+//     // response.results값 체크
+//     return response.results
+//   },
+// }
 
 // 좌석 정보륿 불러 온다.
 const loadSeatInfo = async () => {
@@ -146,14 +155,6 @@ async function openBookingModal() {
     }
 
     openModal.value = true
-
-    // if (datesData && datesData.length > 0) {
-    //   availableDatesResponse.value = datesData
-
-    // } else {
-    //   availableDatesResponse.value = []
-    //   calendarDates.value = []
-    // }
 
   } catch (error) {
     console.error('모달 열기 중 오류:', error)
@@ -210,36 +211,9 @@ const nextStep = async () => {
     step.value++
     connectWebSocket()
     await loadSeatInfo()
+    openModal.value = false
     isBack.value = false
     // 실시간 좌석 정보 불러오기
-
-    // availableDatesResponse : 특정 상품의 일정 및 회차 정보
-    // console.log(availableDatesResponse)
-    // 선택된 날짜와 시간에 해당하는 회차 객체 저장
-    // const selectedRoundInfo = availableDatesResponse.value.find(
-    //   (d) => d.date === selectedDate.value,
-    // )
-    // console.log(selectedRoundInfo)
-
-    // 선택된 날짜 or 시간의 회차 정보가 없을떄 오류 처리
-    // if (!selectedRoundInfo) {
-    //   alert('선택된 날짜의 회차 정보를 찾을 수 없습니다.')
-    //   return
-    // }
-
-    // 선택된 시간의 회차 정보 저장
-    // const roundTimeInfo = selectedRoundInfo.roundTimes.find((rt) =>
-    //   rt.times.startsWith(selectedTime.value),
-    // )
-
-    // 회차 정보 없을때 오류 처리
-    // if (!roundTimeInfo) {
-    //   alert('선택된 시간의 회차 정보를 찾을 수 없습니다.')
-    //   return
-    // }
-
-    // 백엔드와 변수 맞춰주기
-    // const roundId = `${selectedDate.value.replace(/-/g, '')}-${selectedTime.value.replace(/:/g, '')}`
 
     const req = {
       roundTimeIdx: selectedTime.value.idx
@@ -249,41 +223,19 @@ const nextStep = async () => {
     const statusResponse = await productAPI.getSeatStatusV2(req)
 
     if (statusResponse.success) {
-      console.log(seats.value)
       const rockSeats = statusResponse.results
       const keys = Object.keys(rockSeats).map(Number)
-      console.log("keys" + keys)
-
-      console.log("seats.value = " + seats.value)
 
       const rockedSeats = seats.value.filter(seat => {
         return keys.includes(seat.idx)
       })
-
-      console.log("rockedSeats = " + rockedSeats)
 
       rockedSeats.forEach(element => {
         disabledSeats.value.push(element.name)
       });
     }
 
-    // 레디스에 임시로 선택된 좌석의 idx값
 
-
-    // // 응답 데이터로 좌석 상태를 업데이트
-    // // statusResponse 객체의 키(key)는 좌석 이름, 값(value)은 상태입니다.
-    // for (const [seatName, status] of Object.entries(statusResponse.results)) {
-    //   // 만약 좌석 상태가 'selecting'이고 `disabledSeats`에 포함되어 있지 않다면
-    //   // 해당 좌석을 `disabledSeats` 배열에 추가하여 다른 유저가 선택하지 못하도록 합니다.
-    //   if (status === 'select' && !disabledSeats.value.includes(seatName)) {
-    //     disabledSeats.value.push(seatName)
-    //     console.log(`다른 유저에 의해 선택된 좌석: ${seatName}`)
-    //   }
-    // }
-    // } catch (error) {
-    //   console.error('좌석 상태를 불러오는 중 오류 발생:', error)
-    //   alert('좌석 상태를 불러오는 중 오류가 발생했습니다.')
-    // }
   } else if (step.value === 2) {
     // 좌석에서 수령 방법으로 넘어갈 때
     // if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
@@ -298,12 +250,21 @@ const nextStep = async () => {
 function prevStep() {
   if (step.value > 1) {
     step.value--
-
-    if (step.value == 1) {
-      if (isBack.value) isBack.value = true
-    }
+    openModal.value = !openModal.value
   }
 }
+
+watch(() => step.value, (newValue) => {
+  if (newValue === 1) {
+    isBack.value = !isBack.value
+    bookingPageReset()
+    return
+  }
+
+  if (newValue === 2) {
+    isBack.value = !isBack.value
+  }
+})
 
 // 결제를 진행하는 메서드
 const onSubmit = async () => {
