@@ -38,7 +38,7 @@ const bookingPageReset = () => {
   loadError.value = null
 
   roundTimes.value = []
-
+  disabledSeatIdxes.value = []
 }
 
 const productDetail = ref(null)
@@ -47,6 +47,7 @@ const selectedTime = ref('')
 const seatGrades = ref([])
 const selectedSeats = ref([])
 const disabledSeats = ref([])
+const disabledSeatIdxes = ref([])
 const step = ref(1)
 const seats = ref([])
 const isLoading = ref(true)
@@ -101,28 +102,7 @@ const connectWebSocket = () => {
   )
 }
 
-// const api = {
-//   getProductDetail: async (id) => {
-//     const response = await productAPI.getProductDetail({ productId: id })
-//     return response.results
-//   },
-//   getAvailableDates: async (id) => {
-//     const response = await productAPI.getAvailableDates({ id })
-//     return response.results
-//   },
-//   getSeatDates: async (id) => {
-//     const response = await productAPI.getSeatDates({ productId: id })
-//     return response.results
-//   },
-//   getSeatStatus: async (roundId) => {
-//     const response = await productAPI.getSeatStatus(roundId)
-
-//     // response.results값 체크
-//     return response.results
-//   },
-// }
-
-// 좌석 정보륿 불러 온다.
+// 좌석 정보를 불러 온다.
 const loadSeatInfo = async () => {
   try {
     isLoading.value = true
@@ -171,6 +151,8 @@ function toggleSeat(seat) {
   }
 
   if (disabledSeats.value.includes(seat.name)) return
+
+  disabledSeatIdxes.value.push(seat.idx)
 
   const idx = selectedSeats.value.findIndex((s) => s.name === seat.name)
   if (idx >= 0) {
@@ -256,13 +238,10 @@ function prevStep() {
 
 watch(() => step.value, (newValue) => {
   if (newValue === 1) {
-    isBack.value = !isBack.value
+    isBack.value = true
+    deleteRockedSeats()
     bookingPageReset()
     return
-  }
-
-  if (newValue === 2) {
-    isBack.value = !isBack.value
   }
 })
 
@@ -326,6 +305,24 @@ const selectedRoundDate = async (roundIdx) => {
 
 const selectRoundTime = () => {
   paymentForm.value.roundTimeIdx = selectedTime.value.idx
+}
+
+/**
+ * 현재 사용자가 선택하여 잠긴 좌석을 좌석 락 DB에서 모두 제거한다.
+ */
+const deleteRockedSeats = async () => {
+
+  // 잠긴 좌석이 없는 경우 취소
+  if (disabledSeatIdxes.value.length == 0) {
+    return
+  }
+
+  const req = {
+    roundTimeIdx: selectedTime.value.idx,
+    rockedSeats: disabledSeatIdxes.value
+  }
+
+  const response = await productAPI.deleteRockedSeats(req)
 }
 </script>
 
