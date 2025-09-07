@@ -74,7 +74,7 @@ const onClickRankingOfGenre = (genre) => {
         <!-- Carousel end -->
 
         <!-- product list start -->
-        <section class="d-flex flex-column gap-2 container-lg">
+        <section class="d-flex flex-column gap-5 container-lg">
             <h3 class="fs-2 align-self-center fw-semibold">장르별 랭킹</h3>
             <div class="d-flex gap-2 justify-content-center">
                 <button class="btn btn-outline-light border-2 border text-black rounded-5 fw-bold"
@@ -85,7 +85,13 @@ const onClickRankingOfGenre = (genre) => {
             </div>
 
             <div class="row row-cols-5">
-                <div class="col mb-4" v-for="(product, index) in ProductsTop5ByGenre">
+                <div class="col mb-4 position-relative " v-for="(product, index) in ProductsTop5ByGenre">
+                    <span
+                        class="position-absolute translate-middle badge rounded-pill bg-danger d-flex align-items-center justify-content-center z-3"
+                        style="width: 45px; height: 45px;">
+                        <span class="">{{ index + 1 }}위</span>
+
+                    </span>
                     <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
                         <div class="card h-100 border-0">
                             <img :src="product.posterUrl" class="card-img-top rounded-3"
