@@ -56,7 +56,7 @@ watch(
           <div class="card h-100">
             <img :src="product.posterUrl" class="card-img-top" style="width: 100%; height: 400px;">
             <div class="card-body d-flex flex-column justify-content-between">
-              <h5 class="card-title">{{ product.title }}</h5>
+              <h5 class="card-title">{{ product.name }}</h5>
               <h6 class="card-subtitle mb-2">{{ product.venueName }}</h6>
               <span class="card-text text-dark">{{ product.price }}</span>
               <p class="card-text text-body-secondary">{{ product.startDate }} ~ {{ product.endDate }}</p>
