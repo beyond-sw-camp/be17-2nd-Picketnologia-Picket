@@ -23,8 +23,6 @@ const closeModal = () => {
   paymentForm.value.roundTimeIdx = ''
   paymentForm.value.seatIdxes = []
   openModal.value = false
-  selectedDate.value = ''
-  selectedTime.value = ''
 }
 
 const bookingPageReset = () => {
@@ -294,11 +292,9 @@ const nextStep = async () => {
 
   } else if (step.value === 2) {
     // 좌석에서 수령 방법으로 넘어갈 때
-    // if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
+    if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
     step.value++
   } else if (step.value === 3) {
-    // 수령 선택 화면에서 결제 시도 할 때
-    // if (!deliveryMethod.value) return alert('수령 방식을 선택하세요.')
     await onSubmit()
   }
 }
@@ -403,7 +399,7 @@ const deleteRockedSeats = async () => {
 
 <template>
   <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow" data-bs-target="#staticBackdrop"
-    data-bs-toggle="modal">
+    :data-bs-toggle="userStore.isLogin ? 'modal' : ''">
     예매하기
   </button>
 
