@@ -1,6 +1,5 @@
 import router from '@/router'
 import { defineStore } from 'pinia'
-import { useRoute } from 'vue-router'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -19,10 +18,9 @@ export const useUserStore = defineStore('user', {
       this.isSeller = isSeller(user.userType)
     },
     logout() {
-      const route = useRoute()
       this.$reset()
       sessionStorage.removeItem('user')
-      router.push(route.fullPath)
+      router.push('/')
     },
   },
   persist: {
