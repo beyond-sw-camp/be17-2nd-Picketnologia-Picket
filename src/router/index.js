@@ -157,6 +157,13 @@ const router = createRouter({
       component: () => import('@/views/PaymentResultView.vue'),
     },
   ],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { left: 0, top: 0 }
+    }
+  },
 })
 
 router.beforeEach((to, from, next) => {
