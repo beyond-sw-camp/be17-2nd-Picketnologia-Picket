@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/useUserStore'
 import Stomp from 'stompjs'
@@ -14,6 +14,8 @@ const route = useRoute()
 
 const props = defineProps({
   productName: String,
+  openDate: String,
+  openDateFormat: String
 })
 
 const openModal = ref(false) // 예매 모달창 오픈 여부
@@ -397,13 +399,66 @@ const deleteRockedSeats = async () => {
 
   const response = await productAPI.deleteRockedSeats(req)
 }
+
+const targetDate = computed(() => {
+  return new Date(props.openDate)
+})
+
+// 현재 시각과 비교
+const isOpened = computed(() => {
+  if (!targetDate.value) return false
+  return new Date() >= targetDate.value
+})
+
+let timer = ref()
+const remainingTime = ref()
+const updateRemainingTime = () => {
+  if (!targetDate.value) return
+  const now = new Date()
+  const diff = targetDate.value - now
+
+  if (diff <= 0) {
+    clearInterval(timer)
+    return
+  }
+
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+  // 0인 단위는 출력하지 않기
+  let parts = []
+  if (hours > 0) parts.push(`${hours}시간`)
+  if (minutes > 0) parts.push(`${minutes}분`)
+  if (seconds > 0) parts.push(`${seconds}초 남음`)
+
+  remainingTime.value = parts.join(" ")
+}
+
+onMounted(() => {
+  updateRemainingTime()
+  timer.value = setInterval(updateRemainingTime, 1000)
+})
+
+onUnmounted(() => {
+  if (timer.value) clearInterval(timer)
+})
 </script>
 
 <template>
   <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow" data-bs-target="#staticBackdrop"
-    :data-bs-toggle="userStore.isLogin ? 'modal' : ''">
-    예매하기
+    :data-bs-toggle="userStore.isLogin ? 'modal' : ''" :disabled="!isOpened">
+    <span v-if="!isOpened">
+      {{ props.openDateFormat }} /
+      <span>
+        {{ remainingTime }}
+      </span>
+    </span>
+    <span v-else>
+      예매하기
+    </span>
   </button>
+
 
   <div class="modal fade" id="staticBackdrop" tabindex="-1" aria-hidden="true" aria-labelledby="staticBackdropLabel"
     data-bs-backdrop="static" data-bs-keyboard="false">
