@@ -94,6 +94,10 @@ const handleSortChange = async (val) => {
     }
 };
 
+const upcommingMessage = () => {
+    alert("죄송합니다. 아직 기능을 준비중입니다.")
+}
+
 </script>
 
 <template>
@@ -124,7 +128,8 @@ const handleSortChange = async (val) => {
                 </div>
             </div>
             <RouterLink :to="`/contents/genre/${route.params.code}`"
-                class="text-decoration-none text-dark text-center border-2 border rounded-3 p-3 fw-semibold">
+                class="text-decoration-none text-dark text-center border-2 border rounded-3 p-3 fw-semibold"
+                @click="upcommingMessage">
                 <span>오픈 예정 공연 전체보기</span>
             </RouterLink>
         </section>

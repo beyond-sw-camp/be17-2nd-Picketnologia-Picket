@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/useUserStore'
 import Stomp from 'stompjs'
@@ -14,6 +14,8 @@ const route = useRoute()
 
 const props = defineProps({
   productName: String,
+  openDate: String,
+  openDateFormat: String
 })
 
 const openModal = ref(false) // 예매 모달창 오픈 여부
@@ -23,8 +25,6 @@ const closeModal = () => {
   paymentForm.value.roundTimeIdx = ''
   paymentForm.value.seatIdxes = []
   openModal.value = false
-  selectedDate.value = ''
-  selectedTime.value = ''
 }
 
 const bookingPageReset = () => {
@@ -44,6 +44,7 @@ const bookingPageReset = () => {
 const productDetail = ref(null)
 const selectedDate = ref('')
 const selectedTime = ref('')
+const selectedDateFormat = ref('')
 const seatGrades = ref([])
 const selectedSeats = ref([])
 const disabledSeats = ref([])
@@ -294,11 +295,9 @@ const nextStep = async () => {
 
   } else if (step.value === 2) {
     // 좌석에서 수령 방법으로 넘어갈 때
-    // if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
+    if (selectedSeats.value.length === 0) return alert('좌석을 선택하세요.')
     step.value++
   } else if (step.value === 3) {
-    // 수령 선택 화면에서 결제 시도 할 때
-    // if (!deliveryMethod.value) return alert('수령 방식을 선택하세요.')
     await onSubmit()
   }
 }
@@ -366,11 +365,12 @@ const onSubmit = async () => {
 }
 
 // 달력 컴포넌트에서 선택한 회차 날짜를 emit 받는 메서드
-const selectedRoundDate = async (roundIdx) => {
-  console.log(roundIdx)
-  selectedDate.value = roundIdx
+const selectedRoundDate = async (roundDate) => {
+  console.log(roundDate)
+  selectedDate.value = roundDate.idx
+  selectedDateFormat.value = roundDate.date
   const response = await productAPI.getRoundTimes({
-    dateId: roundIdx,
+    dateId: selectedDate.value,
   })
 
   if (response.success) {
@@ -399,13 +399,66 @@ const deleteRockedSeats = async () => {
 
   const response = await productAPI.deleteRockedSeats(req)
 }
+
+const targetDate = computed(() => {
+  return new Date(props.openDate)
+})
+
+// 현재 시각과 비교
+const isOpened = computed(() => {
+  if (!targetDate.value) return false
+  return new Date() >= targetDate.value
+})
+
+let timer = ref()
+const remainingTime = ref()
+const updateRemainingTime = () => {
+  if (!targetDate.value) return
+  const now = new Date()
+  const diff = targetDate.value - now
+
+  if (diff <= 0) {
+    clearInterval(timer)
+    return
+  }
+
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+  // 0인 단위는 출력하지 않기
+  let parts = []
+  if (hours > 0) parts.push(`${hours}시간`)
+  if (minutes > 0) parts.push(`${minutes}분`)
+  if (seconds > 0) parts.push(`${seconds}초 남음`)
+
+  remainingTime.value = parts.join(" ")
+}
+
+onMounted(() => {
+  updateRemainingTime()
+  timer.value = setInterval(updateRemainingTime, 1000)
+})
+
+onUnmounted(() => {
+  if (timer.value) clearInterval(timer)
+})
 </script>
 
 <template>
   <button @click="openBookingModal" type="button" class="btn btn-primary btn-lg shadow" data-bs-target="#staticBackdrop"
-    data-bs-toggle="modal">
-    예매하기
+    :data-bs-toggle="userStore.isLogin ? 'modal' : ''" :disabled="!isOpened">
+    <span v-if="!isOpened">
+      {{ props.openDateFormat }} /
+      <span>
+        {{ remainingTime }}
+      </span>
+    </span>
+    <span v-else>
+      예매하기
+    </span>
   </button>
+
 
   <div class="modal fade" id="staticBackdrop" tabindex="-1" aria-hidden="true" aria-labelledby="staticBackdropLabel"
     data-bs-backdrop="static" data-bs-keyboard="false">
@@ -427,7 +480,7 @@ const deleteRockedSeats = async () => {
             <div class="w-50">
               <h4>예매일 선택</h4>
               <Calendar :product-id="Number(route.params.id)" :start-date="productDetail?.startDate"
-                :end-date="productDetail?.endDate" @round-date-id="selectedRoundDate"
+                :end-date="productDetail?.endDate" @round-date="selectedRoundDate"
                 :is-open-reservation-modal="openModal" :is-back="isBack" />
             </div>
             <div class="w-50 d-flex flex-column justify-content-between">
@@ -491,7 +544,7 @@ const deleteRockedSeats = async () => {
             <div class="d-flex flex-column gap-2 w-75 justify-content-between">
               <div class="summary d-flex flex-column gap-2 justify-content-between">
                 <h5>예매 요약</h5>
-                <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
+                <p><strong>예매일:</strong> {{ selectedDateFormat || '선택 안 됨' }}</p>
                 <p><strong>회차:</strong> {{ selectedTime.time || '선택 안 됨' }}</p>
                 <p>
                   <strong>좌석:</strong>
@@ -517,7 +570,7 @@ const deleteRockedSeats = async () => {
 
               <div class="summary d-flex flex-column gap-2 justify-content-between">
                 <h5>예매 요약</h5>
-                <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
+                <p><strong>예매일:</strong> {{ selectedDateFormat || '선택 안 됨' }}</p>
                 <p><strong>회차:</strong> {{ selectedTime.time || '선택 안 됨' }}</p>
                 <p>
                   <strong>좌석:</strong>

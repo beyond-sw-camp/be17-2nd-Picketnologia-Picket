@@ -75,6 +75,8 @@ const product = ref({
     posterUrl: '',
     price: 0,
     description: '',
+    openDate: '',
+    openDateFormat: '',
     seatGrades: [
         {
             grade: '',
@@ -245,7 +247,7 @@ const formatDate = (dateString) => {
                                 <td class="d-flex flex-column gap-2">
                                     <div v-for="seatGrade in product.seatGrades">
                                         {{ seatGrade.grade }}석 <span class="fw-bold">{{ seatGrade.priceInfo.priceFormat
-                                            }}</span>
+                                        }}</span>
                                     </div>
                                 </td>
                             </tr>
@@ -253,7 +255,8 @@ const formatDate = (dateString) => {
                     </table>
                     <div class="flex-fill"></div>
                     <div class="d-grid">
-                        <BookingPage :product-name="product.name" />
+                        <BookingPage :product-name="product.name" :open-date="product.openDate"
+                            :open-date-format="product.openDateFormat" />
                     </div>
 
                 </div>
