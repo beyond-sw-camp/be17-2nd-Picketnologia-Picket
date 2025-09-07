@@ -153,10 +153,30 @@ const getSeatStatus = async (req) => {
 
 const getSeatStatusV2 = async (req) => {
   let data = {}
-  const url = `/api/round/seat-status/${req.roundTimeIdx}`
+  const url = `/api/seat-status/${req.roundTimeIdx}`
 
   await api
     .get(url)
+    .then((res) => {
+      data = res.data
+    })
+    .catch((error) => {
+      data = error.response.data
+    })
+
+  return data
+}
+
+const deleteRockedSeats = async (req) => {
+  let data = {}
+  const url = '/api/seat-status/' + req.roundTimeIdx
+
+  await api
+    .delete(url, {
+      data: {
+        seatIdxes: req.rockedSeats,
+      },
+    })
     .then((res) => {
       data = res.data
     })
@@ -178,4 +198,5 @@ export default {
   searchAndSort,
   getRoundTimes,
   getSeatStatusV2,
+  deleteRockedSeats,
 }

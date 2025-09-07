@@ -1,6 +1,6 @@
 <script setup>
 import { useDate } from '@/utils/useDate'
-import { ref, watch } from 'vue'
+import { ref, watch, watchEffect } from 'vue'
 import productAPI from '@/api/product/index'
 
 const props = defineProps({
@@ -29,13 +29,11 @@ const openCalander = async () => {
   })
 
   if (response.success) {
-    console.log(response.results)
     rounds.value = response.results.dates
     // findSelectRoundDates(curDate)
   }
 
   const leastDate = rounds.value[0].date
-  console.log(leastDate)
   const split = leastDate.split('-');
 
   curDate.value = new Date(split[0], split[1] - 1, split[2])
@@ -50,8 +48,10 @@ watch(() => props.isOpenReservationModal, (newValue) => {
   }
 })
 
-watch(() => props.isBack, () => {
-  openCalander()
+watchEffect(() => {
+  if (props.isBack) {
+    openCalander()
+  }
 })
 
 const onClickPrevMonth = () => {
