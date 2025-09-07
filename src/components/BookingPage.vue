@@ -42,6 +42,7 @@ const bookingPageReset = () => {
 const productDetail = ref(null)
 const selectedDate = ref('')
 const selectedTime = ref('')
+const selectedDateFormat = ref('')
 const seatGrades = ref([])
 const selectedSeats = ref([])
 const disabledSeats = ref([])
@@ -362,11 +363,12 @@ const onSubmit = async () => {
 }
 
 // 달력 컴포넌트에서 선택한 회차 날짜를 emit 받는 메서드
-const selectedRoundDate = async (roundIdx) => {
-  console.log(roundIdx)
-  selectedDate.value = roundIdx
+const selectedRoundDate = async (roundDate) => {
+  console.log(roundDate)
+  selectedDate.value = roundDate.idx
+  selectedDateFormat.value = roundDate.date
   const response = await productAPI.getRoundTimes({
-    dateId: roundIdx,
+    dateId: selectedDate.value,
   })
 
   if (response.success) {
@@ -423,7 +425,7 @@ const deleteRockedSeats = async () => {
             <div class="w-50">
               <h4>예매일 선택</h4>
               <Calendar :product-id="Number(route.params.id)" :start-date="productDetail?.startDate"
-                :end-date="productDetail?.endDate" @round-date-id="selectedRoundDate"
+                :end-date="productDetail?.endDate" @round-date="selectedRoundDate"
                 :is-open-reservation-modal="openModal" :is-back="isBack" />
             </div>
             <div class="w-50 d-flex flex-column justify-content-between">
@@ -487,7 +489,7 @@ const deleteRockedSeats = async () => {
             <div class="d-flex flex-column gap-2 w-75 justify-content-between">
               <div class="summary d-flex flex-column gap-2 justify-content-between">
                 <h5>예매 요약</h5>
-                <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
+                <p><strong>예매일:</strong> {{ selectedDateFormat || '선택 안 됨' }}</p>
                 <p><strong>회차:</strong> {{ selectedTime.time || '선택 안 됨' }}</p>
                 <p>
                   <strong>좌석:</strong>
@@ -513,7 +515,7 @@ const deleteRockedSeats = async () => {
 
               <div class="summary d-flex flex-column gap-2 justify-content-between">
                 <h5>예매 요약</h5>
-                <p><strong>예매일:</strong> {{ selectedDate || '선택 안 됨' }}</p>
+                <p><strong>예매일:</strong> {{ selectedDateFormat || '선택 안 됨' }}</p>
                 <p><strong>회차:</strong> {{ selectedTime.time || '선택 안 됨' }}</p>
                 <p>
                   <strong>좌석:</strong>

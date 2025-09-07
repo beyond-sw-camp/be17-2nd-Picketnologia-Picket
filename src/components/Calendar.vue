@@ -11,7 +11,7 @@ const props = defineProps({
   isBack: Boolean
 })
 
-const emit = defineEmits(['roundDateId'])
+const emit = defineEmits(['roundDate'])
 
 const dayOfWeeks = ref(["일", "월", "화", "수", "목", "금", "토"])
 const { getYearAndMonth, getDateOfCurDate } = useDate()
@@ -184,7 +184,9 @@ const findRoundDate = () => {
 
     return roundDate.getTime() === curDate.value.getTime()
   })
-  emit('roundDateId', findRound.idx)
+
+  console.log(findRound)
+  emit('roundDate', findRound)
 }
 </script>
 
