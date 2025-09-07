@@ -322,8 +322,9 @@ watch(() => step.value, (newValue) => {
 // 결제를 진행하는 메서드
 const onSubmit = async () => {
   const validteResponse = await paymentAPI.validateSeats({
-    roundTimeIdx: 1,
-    seatIdxes: [10],
+    productIdx: paymentForm.value.productIdx,
+    roundTimeIdx: paymentForm.value.roundTimeIdx,
+    seatIdxes: paymentForm.value.seatIdxes,
   })
 
   const successValidateSeats = validteResponse.success

@@ -1,156 +1,136 @@
 <script setup>
 import { reactive, ref, watch, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { useSearchStore } from '@/stores/useSearchStore';
-import api from '@/api/product'
+import productAPI from '@/api/product'
+import genreAPI from '@/api/genre'
 
-const route = useRoute();
-const searchStore = useSearchStore();
+const ProductsTop5ByGenre = ref({})
 
-const regionOptions = ref([
-    { value: '1', label: '지역 전체' },
-    { value: '2', label: '강원' },
-    { value: '3', label: '경기' },
-    { value: '4', label: '경상' },
-    { value: '5', label: '광주' },
-    { value: '6', label: '대구' },
-    { value: '7', label: '대전' },
-    { value: '8', label: '부산' },
-    { value: '9', label: '서울' },
-    { value: '10', label: '울산' },
-    { value: '11', label: '인천' },
-    { value: '12', label: '전라' },
-    { value: '13', label: '제주' },
-    { value: '14', label: '충청' }
-])
+const genres = ref([])
+const selectedGenres = ref()
+onMounted(async () => {
+    const response = await genreAPI.getGenres()
+    if (response.success) {
+        genres.value = response.results.genres
+        selectedGenres.value = genres.value[0]
 
-const sortedOtpions = ref([
-    { value: '1', label: '최신순' },
-    { value: '2', label: '오래된순' },
-    { value: '3', label: '일간 랭킹순' },
-    { value: '3', label: '주간 랭킹순' },
-])
-
-const fetchData = reactive({
-    selectedSorted: sortedOtpions.value[0].value,
-    selectedLocal: regionOptions.value[0].value
+        getTop5Products(selectedGenres.value.code)
+        getTop5UpcommingProducts()
+    }
 })
 
-// const products = ref([
-//     {
-//         idx: 1,
-//         name: '지킬 앤 하이드',
-//         venueName: '충무아트센터',
-//         price: '4,500원',
-//         startDate: '2025.6.15 ~ 7.30',
-//         endDate: "2025.7.30",
-//         posterUrl: '',
-//         price: 4500,
-//     }
-// ])
-
-const products = ref({})
-watch(
-    () => fetchData.selectedSorted,
-    async (newValue) => {
-        if (!newValue) return
-
-        const params = {
-            sorted: fetchData.selectedSorted
-        }
-
-        // const response = await api.getProucts(params);
-
+const getTop5Products = async (code) => {
+    const req = {
+        genre: code
     }
-)
 
-watch(
-    () => fetchData.selectedLocal,
-    async (newValue) => {
-        if (!newValue) return
-
-        const params = {
-            region: fetchData.selectedLocal
-        }
-
-        // const response = await fetchData(selectedSorted)
+    const response = await productAPI.getTop5ProductOrderBySalesCount(req);
+    if (response.success) {
+        ProductsTop5ByGenre.value = response.results
     }
-)
+}
 
-// onMounted(async () => {
-//     const response = await api.getProducts()
-//     if (response.success) {
-//         products.value = response.results.productList
-//     } else {
-//         products.value = []
-//     }
-// })
-onMounted(async () => {
-    const response = await api.getProducts()
-    if (response.success && response.results) {
-        products.value = response.results.productList
-    } else {
-        products.value = []
+const upcommingProducts = ref([])
+const getTop5UpcommingProducts = async () => {
+    const response = await productAPI.getTop5UpcommingProducts();
+    if (response.success) {
+        upcommingProducts.value = response.results
     }
-}) 
+}
+
+/**
+ * 장르별 랭킹 클릭 시 이벤트
+ * @param genre 클릭한 장르 객체
+ */
+const onClickRankingOfGenre = (genre) => {
+    selectedGenres.value = genre
+
+    // 장르 별 랭킹 공연 10개 요청
+    getTop5Products(selectedGenres.value.code)
+}
+
 </script>
 
 <template>
-    <!-- carousel start -->
-    <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class=" carousel-inner">
-            <div class=" carousel-item active">
-                <img src="@/assets/image/slide01.png" class="d-block w-100" style="height: 600px;">
+    <div class="d-flex flex-column gap-5">
+        <!-- carousel start -->
+        <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class=" carousel-inner">
+                <div class=" carousel-item active">
+                    <img src="@/assets/image/slide01.png" class="d-block w-100" style="height: 600px;">
+                </div>
+                <div class="carousel-item">
+                    <img src="@/assets/image/slide02.png" class="d-block w-100" style="height: 600px;">
+                </div>
             </div>
-            <div class="carousel-item">
-                <img src="@/assets/image/slide02.png" class="d-block w-100" style="height: 600px;">
-            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
         </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
-    </div>
-    <!-- Carousel end -->
+        <!-- Carousel end -->
 
-    <!-- product list start -->
-    <section class="d-flex flex-column gap-2 container-lg">
-        <h3 class="fs-2 align-self-center fw-semibold">공연 둘러보기</h3>
-        <div class="d-flex gap-2">
-            <select class="form-select w-auto" v-model="fetchData.selectedLocal">
-                <option v-for="option in regionOptions" :key="option.value" :value="option.value">
-                    {{ option.label }}
-                </option>
-            </select>
-            <select class="form-select w-auto" v-model="fetchData.selectedSorted">
-                <option v-for="option in sortedOtpions" :key="option.value" :value="option.value">
-                    {{ option.label }}
-                </option>
-            </select>
-        </div>
-        <div class="row row-cols-5">
-            <div class=" col mb-4" v-for="product, index in products">
-                <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
-                    <div class="card h-100">
-                        <img :src="product.posterUrl" class="card-img-top" style="width: 100%; height: 400px;">
-                        <div class="card-body d-flex flex-column justify-content-between">
-                            <h5 class="card-title">{{ product.title }}</h5>
-                            <h6 class="card-subtitle mb-2">{{ product.venueName }}</h6>
-                            <span class="card-text text-dark">
-                                {{ product.price }}
-                            </span>
-                            <p class="card-text text-body-secondary">{{ product.startDate }} ~ {{ product.endDate }}</p>
-                        </div>
-                    </div>
-                </RouterLink>
+        <!-- product list start -->
+        <section class="d-flex flex-column gap-2 container-lg">
+            <h3 class="fs-2 align-self-center fw-semibold">장르별 랭킹</h3>
+            <div class="d-flex gap-2 justify-content-center">
+                <button class="btn btn-outline-light border-2 border text-black rounded-5 fw-bold"
+                    :class="genre.idx === selectedGenres.idx ? 'bg-dark text-white' : ''" v-for="genre in genres"
+                    @click="onClickRankingOfGenre(genre)">
+                    {{ genre.name }}
+                </button>
             </div>
-        </div>
-    </section>
-    <!-- product list end -->
+
+            <div class="row row-cols-5">
+                <div class="col mb-4" v-for="(product, index) in ProductsTop5ByGenre">
+                    <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
+                        <div class="card h-100 border-0">
+                            <img :src="product.posterUrl" class="card-img-top rounded-3"
+                                style="width: 100%; height: 300px;">
+                            <div class="card-body d-flex flex-column justify-content-between gap-1 px-1">
+                                <h5 class="card-title fw-bold mb-0">{{ product.name }}</h5>
+
+                                <h6 class="card-subtitle">{{ product.venueName }}</h6>
+                                <p class="card-text text-body-tertiary">
+                                    {{ product.startDate }} ~ {{ product.endDate }}
+                                </p>
+                            </div>
+                        </div>
+                    </RouterLink>
+                </div>
+            </div>
+        </section>
+        <!-- product list end -->
+
+        <!-- 오픈 예정 -->
+        <section class="d-flex flex-column gap-2 container-lg">
+            <h3 class="fs-2 align-self-center fw-semibold">오픈 예정</h3>
+            <div class="row row-cols-5">
+                <div class=" col mb-4" v-for="product, index in upcommingProducts" :key="index">
+                    <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
+                        <div class="card h-100 border-0">
+                            <img :src="product.posterUrl" class="card-img-top rounded-3"
+                                style="width: 100%; height: 300px;">
+                            <div class="card-body d-flex flex-column gap-1 px-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title fw-bold mb-0">{{ product.name }}</h5>
+
+
+                                </div>
+                                <h6 class="card-subtitle fw-bold text-primary">
+                                    {{ product.openDate }}
+                                </h6>
+                            </div>
+                        </div>
+                    </RouterLink>
+                </div>
+            </div>
+        </section>
+    </div>
+
 </template>
 
 <style scoped></style>
