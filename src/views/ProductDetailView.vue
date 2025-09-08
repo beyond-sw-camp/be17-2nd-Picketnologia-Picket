@@ -75,8 +75,22 @@ const product = ref({
     posterUrl: '',
     price: 0,
     description: '',
+    openDate: '',
+    openDateFormat: '',
+    seatGrades: [
+        {
+            grade: '',
+            priceInfo: {
+                price: 0,
+                priceFormat: ''
+            }
+        }
+    ]
 });
 
+/**
+ * 컴포넌트 마운트시 상품 상세 조회 요청
+ */
 onMounted(async () => {
     const req = {
         productId: route.params.id
@@ -230,13 +244,19 @@ const formatDate = (dateString) => {
                             </tr>
                             <tr>
                                 <td><strong>가격</strong></td>
-                                <td>{{ product.price }} 원</td>
+                                <td class="d-flex flex-column gap-2">
+                                    <div v-for="seatGrade in product.seatGrades">
+                                        {{ seatGrade.grade }}석 <span class="fw-bold">{{ seatGrade.priceInfo.priceFormat
+                                        }}</span>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                     <div class="flex-fill"></div>
                     <div class="d-grid">
-                        <BookingPage :product-name="product.name" />
+                        <BookingPage :product-name="product.name" :open-date="product.openDate"
+                            :open-date-format="product.openDateFormat" />
                     </div>
 
                 </div>

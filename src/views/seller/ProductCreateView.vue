@@ -8,7 +8,6 @@ import productAPI from '@/api/product'
 // DTO와 맵핑
 const form = ref({
   name: '',
-  price: null,
   genre: '',
   rating: '',
   venueName: '',
@@ -398,19 +397,8 @@ onMounted(() => {
       <div class="row mb-3">
         <label for="venue" class="col-sm-2 col-form-label">공연장</label>
         <div class="col-sm-10">
-          <input
-            type="text"
-            class="form-control mb-3"
-            id="venue"
-            placeholder="공연장명"
-            v-model="form.venueName"
-          />
-          <input
-            type="text"
-            class="form-control"
-            placeholder="공연장 주소"
-            v-model="form.venueAddress"
-          />
+          <input type="text" class="form-control mb-3" id="venue" placeholder="공연장명" v-model="form.venueName" />
+          <input type="text" class="form-control" placeholder="공연장 주소" v-model="form.venueAddress" />
         </div>
       </div>
       <!-- 공연장 end -->
@@ -436,36 +424,20 @@ onMounted(() => {
         <label class="col-sm-2 col-form-label">좌석 별 등급 지정</label>
         <div class="col-sm-10">
           <!-- Button trigger modal -->
-          <button
-            type="button"
-            class="btn btn-dark btn-lg shadow w-100"
-            data-bs-toggle="modal"
-            data-bs-target="#settingSeatModal"
-          >
+          <button type="button" class="btn btn-dark btn-lg shadow w-100" data-bs-toggle="modal"
+            data-bs-target="#settingSeatModal">
             좌석 등급 지정하기
           </button>
 
           <!-- Modal -->
-          <div
-            class="modal fade"
-            id="settingSeatModal"
-            data-bs-backdrop="static"
-            data-bs-keyboard="false"
-            tabindex="-1"
-            aria-labelledby="settingSeatModalLabel"
-            aria-hidden="true"
-          >
+          <div class="modal fade" id="settingSeatModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="settingSeatModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
               <div class="modal-content text-center">
                 <!-- 좌석 등급 start -->
                 <div class="modal-header">
                   <h1 class="modal-title fs-5" id="settingSeatModalLabel">좌석 등급 지정하기</h1>
-                  <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                  ></button>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <!-- 좌석 등급 end -->
 
@@ -475,36 +447,17 @@ onMounted(() => {
                     <div>등급을 선택하세요.</div>
                     <div class="d-flex gap-2">
                       <div class="form-check" v-for="(grade, index) in seatGrade.grades">
-                        <input
-                          class="form-check-input"
-                          :class="[getGradeCode(grade), 'color-box', 'border']"
-                          type="radio"
-                          name="seatGrade"
-                          :id="`grade-${grade.code}`"
-                          @click="selectGrade(grade)"
-                        />
-                        <label
-                          class="form-check-label"
-                          :class="grade.code"
-                          :for="`grade-${grade.code}`"
-                        >
+                        <input class="form-check-input" :class="[getGradeCode(grade), 'color-box', 'border']"
+                          type="radio" name="seatGrade" :id="`grade-${grade.code}`" @click="selectGrade(grade)" />
+                        <label class="form-check-label" :class="grade.code" :for="`grade-${grade.code}`">
                           {{ grade.name }}
                         </label>
                       </div>
                     </div>
                     <div class="seat-map">
-                      <div
-                        class="seat-row"
-                        v-for="(row, rowIndex) in seatMap.seats"
-                        :key="rowIndex"
-                      >
-                        <div
-                          v-for="(seat, colIndex) in row"
-                          :key="colIndex"
-                          class="seat"
-                          :class="getSeatGrade(seat)"
-                          @click="insertGrade(seat)"
-                        >
+                      <div class="seat-row" v-for="(row, rowIndex) in seatMap.seats" :key="rowIndex">
+                        <div v-for="(seat, colIndex) in row" :key="colIndex" class="seat" :class="getSeatGrade(seat)"
+                          @click="insertGrade(seat)">
                           {{ seat.name }}
                         </div>
                       </div>
@@ -514,11 +467,7 @@ onMounted(() => {
                 <!-- 좌석 MAP end -->
 
                 <div class="modal-footer">
-                  <button
-                    type="button"
-                    class="btn btn-dark w-100 btn-lg shadow"
-                    data-bs-dismiss="modal"
-                  >
+                  <button type="button" class="btn btn-dark w-100 btn-lg shadow" data-bs-dismiss="modal">
                     확인
                   </button>
                 </div>
@@ -559,15 +508,6 @@ onMounted(() => {
         </div>
       </div>
       <!-- 포스터 이미지 end -->
-
-      <!-- 가격 start -->
-      <div class="row mb-3">
-        <label for="price" class="col-form-label col-sm-2">가격</label>
-        <div class="col-sm-10">
-          <input type="number" class="form-control" id="price" v-model="form.price" />
-        </div>
-      </div>
-      <!-- 가격 end -->
 
       <!-- 오픈 예정일 start -->
       <div class="row mb-3">
@@ -621,20 +561,10 @@ onMounted(() => {
                   </li>
                 </ul>
                 <div>
-                  <div
-                    class="form-check form-check-inline"
-                    v-for="day in daysOfWeek"
-                    :key="day.code"
-                  >
-                    <input
-                      type="checkbox"
-                      class="form-check-input"
-                      :id="'exclude-' + day.code"
-                      :value="day"
-                      @click="checkDaySelected(day)"
-                      :disabled="disableIsEveryDay(day.code)"
-                      :checked="isDaySelected(day.code)"
-                    />
+                  <div class="form-check form-check-inline" v-for="day in daysOfWeek" :key="day.code">
+                    <input type="checkbox" class="form-check-input" :id="'exclude-' + day.code" :value="day"
+                      @click="checkDaySelected(day)" :disabled="disableIsEveryDay(day.code)"
+                      :checked="isDaySelected(day.code)" />
                     <label class="form-check-label" :for="'exclude-' + day.code">
                       {{ day.name }}
                     </label>
@@ -659,12 +589,7 @@ onMounted(() => {
               </ul>
               <div>
                 <div class="form-check form-check-inline">
-                  <input
-                    type="checkbox"
-                    class="form-check-input"
-                    id="same-times"
-                    @click="sameTimes"
-                  />
+                  <input type="checkbox" class="form-check-input" id="same-times" @click="sameTimes" />
                   <label class="form-check-label" for="same-times">
                     모든 요일 회차 시간 동일
                   </label>
@@ -673,67 +598,36 @@ onMounted(() => {
 
               <!-- 선택한 요일 동일한 회차 시간 등록 start -->
               <div v-if="isSameTime" class="d-flex flex-column gap-2">
-                <button
-                  type="button"
-                  class="btn btn-success btn shadow"
-                  @click="addAutoRoundTimes()"
-                >
+                <button type="button" class="btn btn-success btn shadow" @click="addAutoRoundTimes()">
                   추가
                 </button>
-                <div
-                  class="d-flex flex-column align-items-center gap-2"
-                  v-for="(time, index) in roundOption.sameTimes"
-                  :key="index"
-                >
+                <div class="d-flex flex-column align-items-center gap-2" v-for="(time, index) in roundOption.sameTimes"
+                  :key="index">
                   <div class="d-flex align-items-center gap-2 w-100">
-                    <input
-                      type="time"
-                      class="form-control"
-                      v-model="roundOption.sameTimes[index]"
-                    />
-                    <button
-                      type="button"
-                      class="btn-close"
-                      aria-label="Close"
-                      @click="removeAutoRoundTimes(index)"
-                    ></button>
+                    <input type="time" class="form-control" v-model="roundOption.sameTimes[index]" />
+                    <button type="button" class="btn-close" aria-label="Close"
+                      @click="removeAutoRoundTimes(index)"></button>
                   </div>
                 </div>
               </div>
               <!-- 선택한 요일 동일한 회차 시간 등록 end   -->
 
               <!-- 요일별 회차 시간 개별 등록 start -->
-              <div
-                class="d-flex gap-2 flex-column"
-                v-for="day in roundOption.selectedDays"
-                :key="day.code"
-                v-else
-              >
+              <div class="d-flex gap-2 flex-column" v-for="day in roundOption.selectedDays" :key="day.code" v-else>
                 <div class="fs-6 fw-semibold d-flex justify-content-between align-items-center">
                   <div>
                     {{ day.name }}
                   </div>
-                  <button
-                    type="button"
-                    class="btn btn-success btn-sm shadow"
-                    @click="addAutoRoundTimesForDay(day)"
-                  >
+                  <button type="button" class="btn btn-success btn-sm shadow" @click="addAutoRoundTimesForDay(day)">
                     추가
                   </button>
                 </div>
-                <div
-                  class="d-flex flex-column align-items-center gap-2"
-                  v-for="(time, index) in day.times"
-                  :key="index"
-                >
+                <div class="d-flex flex-column align-items-center gap-2" v-for="(time, index) in day.times"
+                  :key="index">
                   <div class="d-flex align-items-center gap-2 w-100">
                     <input type="time" class="form-control" v-model="day.times[index]" />
-                    <button
-                      type="button"
-                      class="btn-close"
-                      aria-label="Close"
-                      @click="removeAutoRoundTimesForDay(day, index)"
-                    ></button>
+                    <button type="button" class="btn-close" aria-label="Close"
+                      @click="removeAutoRoundTimesForDay(day, index)"></button>
                   </div>
                 </div>
               </div>
@@ -750,19 +644,11 @@ onMounted(() => {
             </div>
             <p class="fw-bold">특정 요일에 특정 시간을 설정하여 회차를 추가 할 수 있습니다.</p>
 
-            <div
-              v-for="(round, index) in roundOption.manualRounds"
-              :key="index"
-              class="d-flex align-items-center gap-2"
-            >
+            <div v-for="(round, index) in roundOption.manualRounds" :key="index"
+              class="d-flex align-items-center gap-2">
               <input type="date" class="form-control" v-model="round.date" required />
               <input type="time" class="form-control" v-model="round.time" required />
-              <button
-                type="button"
-                class="btn-close"
-                aria-label="Close"
-                @click="removeManualRound(index)"
-              ></button>
+              <button type="button" class="btn-close" aria-label="Close" @click="removeManualRound(index)"></button>
             </div>
             <button type="button" class="btn btn-success btn-lg shadow" @click="addManualRound">
               회차 등록

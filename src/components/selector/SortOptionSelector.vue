@@ -16,18 +16,19 @@ const getSortOptions = async () => {
         fetchData.value.selectedSorted = sortOptions.value[0].code;
 
         // 최초 로딩 시에도 알려주기
-        emit('changeSort', fetchData.value.selectedSorted);
+        // emit('changeSort', fetchData.value.selectedSorted);
     }
 };
 
-onMounted(() => {
-    getSortOptions();
+onMounted(async () => {
+    await getSortOptions();
 });
 
 // 선택값 바뀔 때마다 부모로 emit
 watch(() => fetchData.value.selectedSorted, (newValue) => {
     emit('changeSort', newValue);
 });
+
 </script>
 
 <template>

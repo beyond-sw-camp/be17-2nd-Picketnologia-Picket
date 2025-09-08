@@ -80,7 +80,9 @@ onMounted(async () => {
         <div v-if="props.isSellerView" class="align-self-end fs-4 fw-bold">
           {{ props.sellerTapName }}
         </div>
-        <LoginNavBar class=" fs-6" />
+        <div class=" fs-6">
+          <LoginNavBar />
+        </div>
       </div>
     </nav>
   </div>

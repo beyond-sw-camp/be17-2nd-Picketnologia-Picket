@@ -1,6 +1,6 @@
 <script setup>
 import { useDate } from '@/utils/useDate'
-import { ref, watch } from 'vue'
+import { ref, watch, watchEffect } from 'vue'
 import productAPI from '@/api/product/index'
 
 const props = defineProps({
@@ -11,7 +11,7 @@ const props = defineProps({
   isBack: Boolean
 })
 
-const emit = defineEmits(['roundDateId'])
+const emit = defineEmits(['roundDate'])
 
 const dayOfWeeks = ref(["일", "월", "화", "수", "목", "금", "토"])
 const { getYearAndMonth, getDateOfCurDate } = useDate()
@@ -29,13 +29,11 @@ const openCalander = async () => {
   })
 
   if (response.success) {
-    console.log(response.results)
     rounds.value = response.results.dates
     // findSelectRoundDates(curDate)
   }
 
   const leastDate = rounds.value[0].date
-  console.log(leastDate)
   const split = leastDate.split('-');
 
   curDate.value = new Date(split[0], split[1] - 1, split[2])
@@ -50,8 +48,10 @@ watch(() => props.isOpenReservationModal, (newValue) => {
   }
 })
 
-watch(() => props.isBack, () => {
-  openCalander()
+watchEffect(() => {
+  if (props.isBack) {
+    openCalander()
+  }
 })
 
 const onClickPrevMonth = () => {
@@ -184,7 +184,9 @@ const findRoundDate = () => {
 
     return roundDate.getTime() === curDate.value.getTime()
   })
-  emit('roundDateId', findRound.idx)
+
+  console.log(findRound)
+  emit('roundDate', findRound)
 }
 </script>
 
