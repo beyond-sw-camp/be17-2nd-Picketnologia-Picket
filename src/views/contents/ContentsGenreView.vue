@@ -159,11 +159,11 @@ const upcommingMessage = () => {
                                 <div class="d-flex align-items-center gap-2">
                                     <h5 class="card-title fw-bold mb-0">{{ product.name }}</h5>
 
-                                    <span v-if="sort === 'review' && product.reviewCount !== null"
+                                    <span v-if="sort === 'REVIEW_COUNT' && product.reviewCount !== null"
                                         class="badge bg-secondary">
                                         리뷰 {{ product.reviewCount }}개
                                     </span>
-                                    <span v-else-if="sort === 'rating' && product.reviewRating !== null"
+                                    <span v-else-if="sort === 'REVIEW_RATING' && product.reviewRating !== null"
                                         class="badge bg-warning text-dark">
                                         ⭐ {{ product.reviewRating.toFixed(1) }}
                                     </span>
