@@ -32,6 +32,10 @@ const router = createRouter({
           name: 'ContentsGenre',
           component: () => import('@/views/contents/ContentsGenreView.vue'),
         },
+        {
+          path: '/payment/result',
+          component: () => import('@/views/PaymentResultView.vue'),
+        },
       ],
     },
     {
@@ -151,10 +155,6 @@ const router = createRouter({
           component: () => import('@/views/seller/ProductCreateView.vue'),
         },
       ],
-    },
-    {
-      path: '/payment/result',
-      component: () => import('@/views/PaymentResultView.vue'),
     },
   ],
   scrollBehavior(to, from, savedPosition) {
