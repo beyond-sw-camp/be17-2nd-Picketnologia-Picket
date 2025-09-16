@@ -45,7 +45,7 @@ jobs:
           password: qwer1234
           port: 221
           script: |
-            cat <<EOF | kubectl apply -f -
+            cat <<'EOF' | kubectl apply -f -
             apiVersion: apps/v1
             kind: Deployment
             metadata:
@@ -81,4 +81,4 @@ jobs:
                       periodSeconds: 10
                       successThreshold: 3
                   terminationGracePeriodSeconds: 0
-                  EOF
+            EOF
