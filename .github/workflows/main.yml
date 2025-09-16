@@ -1,7 +1,7 @@
 name: project deployment
 on:
   push:
-    branches: [main]
+    branches: [dev]
 jobs:
   build:
     name: build
@@ -9,17 +9,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
         with:
-         distribution: temurin
-         java-version: '17'
-      - name: Build jar with Gradle (uses build cache)
-        uses: gradle/actions/setup-gradle@v4
-      - name: Gradle build
-        run: |
-         chmod +x ./gradlew
-         ./gradlew clean bootJar
+          node-version: '20'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      - name: Build project
+        run: npm run build
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
@@ -42,43 +40,45 @@ jobs:
       - name: run ssh
         uses: appleboy/ssh-action@v1
         with:
-          host: 192.0.1.10
+          host: 175.197.41.119
           username: test
           password: qwer1234
-          port: 22
+          port: 221
           script: |
             cat <<EOF | kubectl apply -f -
             apiVersion: apps/v1
             kind: Deployment
             metadata:
-              name: spring-deployment
+              name: picket-front-deployment
             spec:
               selector:
                 matchLabels:
-                  type: app
+                  project: picket
+                  type: frontend
               replicas: 1
               strategy:
                 type: RollingUpdate
               template:
                 metadata:
                   labels:
-                    type: app
+                    type: frontend
+                    project: picket
                 spec:
                   containers:
-                  - name: container
-                    image: wonzzu/spring_basic:v1
+                  - name: frontend
+                    image: sagnwoo/picket-front:0.0.1
                     livenessProbe:
                       httpGet:
-                        path: /health
-                        port: 8080
+                        path: /
+                        port: 80
                       initialDelaySeconds: 20
                       periodSeconds: 10
                     readinessProbe:
                       httpGet:
-                        path: /test
-                        port: 8080
+                        path: /
+                        port: 80
                       initialDelaySeconds: 20
                       periodSeconds: 10
                       successThreshold: 3
                   terminationGracePeriodSeconds: 0
-                  EOF 
+                  EOF
