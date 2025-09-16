@@ -46,37 +46,39 @@ jobs:
           username: test
           password: qwer1234
           port: 22
-          script: cat <<EOF apiVersion:apps/v1
-kind: Deployment
-metadata:
-  name: spring-deployment
-spec:
-  selector:
-    matchLabels:
-      type: app
-  replicas: 1
-  strategy:
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        type: app
-    spec:
-      containers:
-      - name: container
-        image: wonzzu/spring_basic:v3
-        livenessProbe:		
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 20
-          periodSeconds: 10
-        readinessProbe:		
-          httpGet:
-            path: /test
-            port: 8080
-          initialDelaySeconds: 20
-          periodSeconds: 10
-          successThreshold: 3
-      terminationGracePeriodSeconds: 0
-       EOF 
+          script: |
+            cat <<EOF | kubectl apply -f -
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: spring-deployment
+            spec:
+              selector:
+                matchLabels:
+                  type: app
+              replicas: 1
+              strategy:
+                type: RollingUpdate
+              template:
+                metadata:
+                  labels:
+                    type: app
+                spec:
+                  containers:
+                  - name: container
+                    image: ddarahakit2025/spring_basic:v1
+                    livenessProbe:
+                      httpGet:
+                        path: /health
+                        port: 8080
+                      initialDelaySeconds: 20
+                      periodSeconds: 10
+                    readinessProbe:
+                      httpGet:
+                        path: /test
+                        port: 8080
+                      initialDelaySeconds: 20
+                      periodSeconds: 10
+                      successThreshold: 3
+                  terminationGracePeriodSeconds: 0
+                  EOF
