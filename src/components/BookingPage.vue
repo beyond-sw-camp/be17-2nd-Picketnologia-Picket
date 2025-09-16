@@ -353,7 +353,7 @@ const onSubmit = async () => {
     })
 
     if (!paymentResponse.code) {
-      router.push('/payment/results')
+      router.push('/payment/result')
     } else {
       console.log(paymentResponse.code)
     }
