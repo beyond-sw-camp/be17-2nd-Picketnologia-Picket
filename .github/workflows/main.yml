@@ -66,7 +66,7 @@ jobs:
                 spec:
                   containers:
                   - name: container
-                    image: ddarahakit2025/spring_basic:v1
+                    image: wonzzu/spring_basic:v1
                     livenessProbe:
                       httpGet:
                         path: /health
