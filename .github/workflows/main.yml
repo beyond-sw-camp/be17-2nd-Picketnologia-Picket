@@ -30,7 +30,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/picket-front:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/picket-front:${{ github.run_number }}
 
   deploy:
     name: deploy
@@ -57,7 +57,7 @@ jobs:
             apiVersion: apps/v1
             kind: Deployment
             metadata:
-              name: picket-front-deployment
+              name: picket-front-deployment-${NEXT_VER}
               namespace: lsw
             spec:
               selector:
@@ -75,7 +75,7 @@ jobs:
                 spec:
                   containers:
                     - name: container
-                      image: sagnwoo/picket-front:latest
+                      image: sagnwoo/picket-front:${{ github.run_number }}
                       livenessProbe:
                         httpGet:
                           path: /
@@ -92,7 +92,7 @@ jobs:
                   terminationGracePeriodSeconds: 0
             EOF
 
-            kubectl rollout status deployment/spring-deployment-${NEXT_VER} -n won
+            kubectl rollout status deployment/picket-front-deployment-${NEXT_VER} -n won
             cat <<EOF | kubectl apply -f -
             apiVersion: v1
             kind: Service
@@ -109,4 +109,4 @@ jobs:
               type: LoadBalancer
             EOF
             
-            kubectl scale deployment spring-deployment-${CURRENT_VER} -n won --replicas=0
+            kubectl scale deployment picket-front-deployment-${CURRENT_VER} -n won --replicas=0
