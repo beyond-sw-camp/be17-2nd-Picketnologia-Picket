@@ -42,7 +42,7 @@ jobs:
         with:
           host: 175.197.41.119
           username: test
-          password: ${{ secrets.SSH_PASSWORD }}
+          password: qwer1234
           port: 221
           script: |
             if kubectl get svc backend-svc -n lsw -o wide | grep -q "green"; then
