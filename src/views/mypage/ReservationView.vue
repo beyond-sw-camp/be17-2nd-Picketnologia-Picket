@@ -32,7 +32,7 @@ const myPageReservation = async () => {
 
 <template>
     <main class="col-md-9">
-        <h4 class="mb-4">예매 내역 확인</h4>
+        <h4 class="mb-4">예매 내역2asdasd 확인</h4>
 
         <div class="mb-3 d-flex align-items-center gap-2">
             <span>조회기간:</span>
