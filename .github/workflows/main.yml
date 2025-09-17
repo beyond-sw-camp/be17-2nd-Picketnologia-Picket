@@ -92,7 +92,7 @@ jobs:
                   terminationGracePeriodSeconds: 0
             EOF
 
-            kubectl rollout status deployment/picket-front-deployment-${NEXT_VER} -n won
+            kubectl rollout status deployment/picket-front-deployment-${NEXT_VER} -n lsw
             cat <<EOF | kubectl apply -f -
             apiVersion: v1
             kind: Service
@@ -109,4 +109,4 @@ jobs:
               type: LoadBalancer
             EOF
             
-            kubectl scale deployment picket-front-deployment-${CURRENT_VER} -n won --replicas=0
+            kubectl scale deployment picket-front-deployment-${CURRENT_VER} -n lsw --replicas=0
