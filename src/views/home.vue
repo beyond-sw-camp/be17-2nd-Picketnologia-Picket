@@ -113,7 +113,7 @@ const onClickRankingOfGenre = (genre) => {
 
         <!-- 오픈 예정 -->
         <section class="d-flex flex-column gap-2 container-lg">
-            <h3 class="fs-2 align-self-center fw-semibold">오픈 예정</h3>
+            <h3 class="fs-2 align-self-center fw-semibold">오픈 예정22</h3>
             <div class="row row-cols-5">
                 <div class=" col mb-4" v-for="product, index in upcommingProducts" :key="index">
                     <RouterLink :to="`/products/${product.idx}`" class="text-decoration-none text-dark">
