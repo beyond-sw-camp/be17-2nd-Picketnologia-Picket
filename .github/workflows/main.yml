@@ -45,7 +45,7 @@ jobs:
           password: qwer1234
           port: 221
           script: |
-            if kubectl get svc backend-svc -n lsw -o wide | grep -q "green"; then
+            if kubectl get svc front -n lsw -o wide | grep -q "green"; then
               CURRENT_VER="green"
               NEXT_VER="blue"
             else
