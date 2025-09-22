@@ -26,5 +26,5 @@ spec:
               subPath: default.conf
       volumes:
         - name: nginx-config-volume
-          ConfigMap:
+          configMap:
             name: nginx-config
