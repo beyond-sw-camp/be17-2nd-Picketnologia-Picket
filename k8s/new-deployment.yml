@@ -4,18 +4,22 @@ metadata:
   name: picket-front-deployment-v${BUILD_NUMBER}
   labels:
     app: picket-front
+    version: v${BUILD_NUMBER}
+    ver: new
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: picket-front
       version: v${BUILD_NUMBER}
+      ver: new
   template:
     metadata:
       name: picket
       labels:
         app: picket-front
         version: v${BUILD_NUMBER}
+        ver: new
     spec:
       containers:
         - name: front
