@@ -75,7 +75,7 @@ const onClickRankingOfGenre = (genre) => {
 
         <!-- product list start -->
         <section class="d-flex flex-column gap-5 container-lg">
-            <h3 class="fs-2 align-self-center fw-semibold">장르별 랭킹v2</h3>
+            <h3 class="fs-2 align-self-center fw-semibold">장르별 랭킹v3</h3>
             <div class="d-flex gap-2 justify-content-center">
                 <button class="btn btn-outline-light border-2 border text-black rounded-5 fw-bold"
                     :class="genre.idx === selectedGenres.idx ? 'bg-dark text-white' : ''" v-for="genre in genres"
